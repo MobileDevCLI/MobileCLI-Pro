@@ -21,7 +21,7 @@ MobileCLI Pro uses **PayPal Subscriptions** for recurring payments at $15/month.
 
 Direct subscription URL:
 ```
-https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DHCKPWE3PJ684
+https://www.paypal.com/ncp/payment/DHCKPWE3PJ684
 ```
 
 ### Managing Subscriptions
@@ -61,7 +61,7 @@ https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DHCKPWE3PJ6
 The PayPal URL is stored in:
 ```kotlin
 companion object {
-    private const val PAYPAL_SUBSCRIBE_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DHCKPWE3PJ684"
+    private const val PAYPAL_SUBSCRIBE_URL = "https://www.paypal.com/ncp/payment/DHCKPWE3PJ684"
 }
 ```
 
@@ -147,7 +147,7 @@ Annual revenue per subscriber: ~$168.84
 
 ### Test the Payment Link
 
-1. Open: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DHCKPWE3PJ684
+1. Open: https://www.paypal.com/ncp/payment/DHCKPWE3PJ684
 2. Log in with a PayPal account
 3. Complete the subscription
 4. Verify it appears in your PayPal dashboard

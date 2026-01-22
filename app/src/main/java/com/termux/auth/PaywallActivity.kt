@@ -34,7 +34,7 @@ class PaywallActivity : AppCompatActivity() {
         private const val TAG = "PaywallActivity"
 
         // PayPal subscription URL (Business account button)
-        private const val PAYPAL_SUBSCRIBE_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DHCKPWE3PJ684"
+        private const val PAYPAL_SUBSCRIBE_URL = "https://www.paypal.com/ncp/payment/DHCKPWE3PJ684"
 
         fun start(context: Context) {
             val intent = Intent(context, PaywallActivity::class.java)
