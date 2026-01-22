@@ -10,8 +10,9 @@ import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import java.time.Instant
-import java.time.temporal.ChronoUnit
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 /**
  * Manages subscription/license verification for MobileCLI Pro.
@@ -106,26 +107,33 @@ class LicenseManager(private val context: Context) {
                 val trialStatus = SubscriptionStatus(
                     userId = userId,
                     status = "trial",
-                    expiresAt = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000),
+                    expiresAt = System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000),
                     lastVerified = System.currentTimeMillis()
                 )
                 saveStatus(trialStatus)
                 return@withContext Result.success(trialStatus)
             }
 
-            // Parse expiry date
+            // Parse expiry date (ISO 8601 format from Supabase)
             val expiresAt = subscription.expires_at?.let {
                 try {
-                    Instant.parse(it).toEpochMilli()
+                    // Parse ISO 8601 timestamp (e.g., "2026-01-29T23:13:39.000Z")
+                    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }
+                    // Remove milliseconds and timezone suffix if present
+                    val cleanDate = it.replace(Regex("\\.[0-9]+Z?$"), "").replace("Z", "")
+                    sdf.parse(cleanDate)?.time ?: throw Exception("Parse failed")
                 } catch (e: Exception) {
+                    Log.w(TAG, "Failed to parse expires_at: $it", e)
                     // Default: 7 days for trial, 30 days for active
                     if (subscription.status == "active") {
-                        System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000)
+                        System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000)
                     } else {
-                        System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000)
+                        System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000)
                     }
                 }
-            } ?: System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000)
+            } ?: System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000)
 
             val status = SubscriptionStatus(
                 userId = userId,
