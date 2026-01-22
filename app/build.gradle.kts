@@ -23,8 +23,8 @@ android {
         // CRITICAL: targetSdk must be <= 28 to allow executing binaries
         // from app data directory. Android 10+ blocks exec() with SELinux.
         targetSdk = 28
-        versionCode = 134
-        versionName = "2.0.0-beta.34"
+        versionCode = 135
+        versionName = "2.0.0-rc.1"
     }
 
     signingConfigs {

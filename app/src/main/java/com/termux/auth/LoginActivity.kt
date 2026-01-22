@@ -103,24 +103,8 @@ class LoginActivity : AppCompatActivity() {
             loginWithGoogle()
         }
 
-        // Skip login button (demo mode)
-        findViewById<TextView>(R.id.skip_login).setOnClickListener {
-            skipLogin()
-        }
-    }
-
-    /**
-     * Skip login for development/testing.
-     * Long press on error text area to activate.
-     */
-    private fun skipLogin() {
-        // Go directly to app (SetupWizard or MainActivity)
-        if (!SetupWizard.isSetupComplete(this)) {
-            startActivity(Intent(this, SetupWizard::class.java))
-        } else {
-            startActivity(Intent(this, MainActivity::class.java))
-        }
-        finish()
+        // Skip login REMOVED for production release
+        // Users must authenticate to use the app
     }
 
     private fun validateInput(email: String, password: String): Boolean {

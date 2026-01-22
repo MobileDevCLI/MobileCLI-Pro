@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-rc.1] - 2026-01-22 (Release Candidate)
+
+### Security
+- **CRITICAL FIX**: Removed "Skip Login (Demo Mode)" button that bypassed authentication
+- All users must now authenticate to access the app
+
+### Added
+- Complete subscription system with Supabase backend
+- PayPal IPN webhook for automatic payment activation (`supabase/functions/paypal-webhook/`)
+- Webhook setup documentation (`docs/WEBHOOK_SETUP.md`)
+- Subscription setup documentation (`docs/SUBSCRIPTION_SETUP.md`)
+- Terms of Service (`docs/TERMS_OF_SERVICE.md`)
+- Privacy Policy (`docs/PRIVACY_POLICY.md`)
+- Legal Disclaimers (`docs/LEGAL_DISCLAIMERS.md`)
+- Row Level Security (RLS) for subscriptions table
+- Automatic trial subscription (7 days) on signup
+- Encrypted local caching for offline access
+
+### Fixed
+- java.time.Instant API 26+ requirement - now works on Android 7.0+ (API 24)
+- Added registerDevice() backward compatibility method
+- PayPal checkout return handling with proper delay
+
+### Changed
+- LicenseManager now queries Supabase subscriptions table
+- PaywallActivity onResume increased delay for webhook processing
+- Version bumped to Release Candidate
+
+---
+
 ## [2.0.0-beta.34-build13] - 2026-01-22
 
 ### Fixed
