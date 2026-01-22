@@ -276,6 +276,12 @@ class LicenseManager(private val context: Context) {
         }
     }
 
+    /**
+     * Register device and get license info.
+     * Alias for verifyLicense() for backward compatibility.
+     */
+    suspend fun registerDevice(): Result<LicenseInfo> = verifyLicense()
+
     fun clearLicense() = clearCache()
 }
 
