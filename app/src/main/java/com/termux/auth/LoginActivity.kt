@@ -100,8 +100,7 @@ class LoginActivity : AppCompatActivity() {
 
         googleButton.setOnClickListener {
             hideKeyboard()
-            // Google OAuth requires additional setup in Supabase dashboard
-            Toast.makeText(this, "Google login requires configuration. Use email for now.", Toast.LENGTH_LONG).show()
+            loginWithGoogle()
         }
 
         // Skip login button (demo mode)
