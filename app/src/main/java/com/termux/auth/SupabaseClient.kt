@@ -1,6 +1,6 @@
 package com.termux.auth
 
-import android.content.Context
+import android.util.Log
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.gotrue.Auth
 import io.github.jan.supabase.gotrue.auth
@@ -8,8 +8,10 @@ import io.github.jan.supabase.gotrue.providers.Google
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.postgrest
+import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
-import kotlinx.serialization.json.Json
+
+private const val TAG = "SupabaseClient"
 
 /**
  * Supabase client singleton for MobileCLI Pro.
@@ -22,17 +24,32 @@ object SupabaseClient {
     private const val SUPABASE_URL = "https://mwxlguqukyfberyhtkmg.supabase.co"
     private const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13eGxndXF1a3lmYmVyeWh0a21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0OTg5ODgsImV4cCI6MjA4MzA3NDk4OH0.VdpU9WzYpTyLeVX9RaXKBP3dNNNf0t9YkQfVf7x_TA8"
 
-    val client = createSupabaseClient(
-        supabaseUrl = SUPABASE_URL,
-        supabaseKey = SUPABASE_ANON_KEY
-    ) {
-        install(Auth) {
-            // Configure auth settings
+    private var _client: io.github.jan.supabase.SupabaseClient? = null
+
+    val client: io.github.jan.supabase.SupabaseClient
+        get() {
+            if (_client == null) {
+                Log.i(TAG, "Initializing Supabase client...")
+                try {
+                    _client = createSupabaseClient(
+                        supabaseUrl = SUPABASE_URL,
+                        supabaseKey = SUPABASE_ANON_KEY
+                    ) {
+                        install(Auth) {
+                            // Configure auth settings
+                        }
+                        install(Postgrest) {
+                            // Configure postgrest settings
+                        }
+                    }
+                    Log.i(TAG, "Supabase client initialized successfully")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to initialize Supabase client", e)
+                    throw e
+                }
+            }
+            return _client!!
         }
-        install(Postgrest) {
-            // Configure postgrest settings
-        }
-    }
 
     val auth get() = client.auth
     val db get() = client.postgrest
@@ -48,6 +65,7 @@ object SupabaseClient {
             }
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(TAG, "Sign up failed", e)
             Result.failure(e)
         }
     }
@@ -63,22 +81,21 @@ object SupabaseClient {
             }
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(TAG, "Sign in failed", e)
             Result.failure(e)
         }
     }
 
     /**
      * Sign in with Google OAuth.
-     * Returns the OAuth URL to open in browser.
      */
-    suspend fun getGoogleSignInUrl(redirectUrl: String): String? {
+    suspend fun signInWithGoogle(): Result<Unit> {
         return try {
-            auth.signInWith(Google) {
-                // This will trigger OAuth flow
-            }
-            null // OAuth handled internally
+            auth.signInWith(Google)
+            Result.success(Unit)
         } catch (e: Exception) {
-            null
+            Log.e(TAG, "Google sign in failed", e)
+            Result.failure(e)
         }
     }
 
@@ -89,7 +106,7 @@ object SupabaseClient {
         try {
             auth.signOut()
         } catch (e: Exception) {
-            // Ignore errors
+            Log.e(TAG, "Sign out failed", e)
         }
     }
 
@@ -97,20 +114,35 @@ object SupabaseClient {
      * Get current user ID if logged in.
      */
     fun getCurrentUserId(): String? {
-        return auth.currentUserOrNull()?.id
+        return try {
+            auth.currentUserOrNull()?.id
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get user ID", e)
+            null
+        }
     }
 
     /**
      * Check if user is logged in.
      */
     fun isLoggedIn(): Boolean {
-        return auth.currentUserOrNull() != null
+        return try {
+            auth.currentUserOrNull() != null
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check login status", e)
+            false
+        }
     }
 
     /**
      * Get current user's email.
      */
     fun getCurrentUserEmail(): String? {
-        return auth.currentUserOrNull()?.email
+        return try {
+            auth.currentUserOrNull()?.email
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get user email", e)
+            null
+        }
     }
 }
