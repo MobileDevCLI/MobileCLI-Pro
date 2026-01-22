@@ -2,9 +2,33 @@
 
 This document explains how the payment system works and how to manage it.
 
+Last Updated: January 22, 2026
+
+---
+
 ## Overview
 
 MobileCLI Pro uses **PayPal Subscriptions** for recurring payments at $15/month.
+
+**Account Type:** PayPal Business (Individual/Sole Proprietor)
+**Business Name:** MobileCLI
+
+---
+
+## PayPal Account Requirements
+
+### Why Business Account is Required
+- Personal PayPal accounts **cannot** accept recurring subscription payments
+- Business accounts are **free** to upgrade
+- Required for subscription buttons to work
+
+### How to Upgrade to Business (if needed)
+1. Go to https://www.paypal.com/bizsignup/
+2. Select "Individual/Sole Proprietor"
+3. Enter business name: `MobileCLI`
+4. Complete verification
+
+---
 
 ## PayPal Configuration
 
@@ -134,6 +158,51 @@ Users can cancel their subscription at:
 - https://www.paypal.com/myaccount/autopay/
 
 You can view/manage subscriber cancellations in your PayPal dashboard.
+
+---
+
+## Viewing Subscribers & Payments
+
+### Where to See Your Subscribers
+
+**PayPal Business Dashboard:**
+https://www.paypal.com/businesshub/dashboard
+
+**Subscription Management:**
+https://www.paypal.com/billing/subscriptions
+
+**Transaction History:**
+https://www.paypal.com/activities/
+
+### Subscriber Information Available
+
+| Data | Where to Find |
+|------|---------------|
+| Subscriber email | Transaction details |
+| Payment date | Activities page |
+| Subscription status | Billing → Subscriptions |
+| Payment amount | Activities page |
+| Subscription ID | Transaction details |
+
+### Monthly Revenue Tracking
+
+1. Go to https://www.paypal.com/activities/
+2. Filter by date range
+3. Filter by "Subscription payment"
+4. Export to CSV if needed
+
+---
+
+## Important PayPal URLs
+
+| Purpose | URL |
+|---------|-----|
+| Main Dashboard | https://www.paypal.com/businesshub/ |
+| View Subscribers | https://www.paypal.com/billing/subscriptions |
+| Manage Buttons | https://www.paypal.com/buttons/ |
+| Transaction History | https://www.paypal.com/activities/ |
+| IPN Settings | https://www.paypal.com/ipn |
+| Developer Dashboard | https://developer.paypal.com/dashboard/ |
 
 ## Fee Structure
 

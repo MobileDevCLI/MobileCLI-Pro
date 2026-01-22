@@ -163,6 +163,73 @@ For testing without authentication, tap "Skip for now (Demo mode)" on the login 
 ### Test Accounts
 Create test accounts at: https://supabase.com/dashboard/project/mwxlguqukyfberyhtkmg/auth/users
 
+---
+
+## User Management - Where to Find Users
+
+### Viewing All Users (Signups & Logins)
+
+**Supabase Dashboard → Authentication → Users**
+https://supabase.com/dashboard/project/mwxlguqukyfberyhtkmg/auth/users
+
+This shows:
+- All registered users (email, Google OAuth, etc.)
+- Sign up date/time
+- Last sign in date/time
+- Email confirmation status
+- User ID (UUID)
+
+### User Data You Can See
+
+| Column | Description |
+|--------|-------------|
+| **Email** | User's email address |
+| **Provider** | `email` or `google` |
+| **Created** | When they signed up |
+| **Last Sign In** | Most recent login |
+| **User UID** | Unique identifier for database queries |
+
+### Exporting User Data
+
+1. Go to Supabase Dashboard → Authentication → Users
+2. Users can be viewed in the table
+3. For export, use the Supabase API or SQL Editor
+
+### SQL Query to List Users
+
+In Supabase SQL Editor (https://supabase.com/dashboard/project/mwxlguqukyfberyhtkmg/sql):
+
+```sql
+-- List all users with sign up and last login times
+SELECT
+  id,
+  email,
+  raw_user_meta_data->>'provider' as provider,
+  created_at as signed_up,
+  last_sign_in_at as last_login
+FROM auth.users
+ORDER BY created_at DESC;
+```
+
+### User Activity Monitoring
+
+To track user activity over time, consider creating a custom `user_activity` table:
+
+```sql
+-- Create activity tracking table
+CREATE TABLE user_activity (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  action TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE user_activity ENABLE ROW LEVEL SECURITY;
+```
+
+---
+
 ## Security Notes
 
 - The Supabase anon key is safe to include in client code (protected by Row Level Security)

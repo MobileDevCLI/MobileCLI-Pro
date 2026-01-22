@@ -278,9 +278,19 @@ App checks license status (TODO: implement webhook)
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.0.0-beta.34-build13 | Jan 22, 2026 | PayPal NCP URL format fix (WORKING) |
+| 2.0.0-beta.34-build12 | Jan 22, 2026 | PayPal Business button ID update |
+| 2.0.0-beta.34-build11 | Jan 22, 2026 | Documentation updates |
 | 2.0.0-beta.34-build9 | Jan 22, 2026 | PayPal integration |
-| 2.0.0-beta.34-build7 | Jan 22, 2026 | Google OAuth fixed |
+| 2.0.0-beta.34-build7 | Jan 22, 2026 | Google OAuth PKCE flow fixed |
 | 2.0.0-beta.34 | Jan 22, 2026 | Auth system added |
+
+### Current Stable Version
+**Build 13** - This is the fully working version with:
+- Email/Password authentication ✅
+- Google OAuth login ✅
+- PayPal $15/month subscription ✅
+- Skip login for testing ✅
 
 ---
 
