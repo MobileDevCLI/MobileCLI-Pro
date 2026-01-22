@@ -27,6 +27,12 @@ jobs:
       run: |
         echo "sdk.dir=$ANDROID_HOME" > local.properties
 
+    - name: Fix gradle.properties for CI
+      run: |
+        # Remove ARM-specific aapt2 override (only needed for local phone builds)
+        sed -i '/android.aapt2FromMavenOverride/d' gradle.properties
+        cat gradle.properties
+
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
