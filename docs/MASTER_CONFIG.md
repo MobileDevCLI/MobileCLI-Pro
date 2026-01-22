@@ -46,9 +46,9 @@ Last Updated: January 22, 2026
 
 | Item | Value |
 |------|-------|
-| **Subscription Button ID** | `NG7EHNHCTAJ3L` |
+| **Subscription Button ID** | `DHCKPWE3PJ684` |
 | **Subscription Price** | $15.00 USD / month |
-| **Payment Link** | `https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NG7EHNHCTAJ3L` |
+| **Payment Link** | `https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DHCKPWE3PJ684` |
 
 ---
 
@@ -149,7 +149,7 @@ Taps "Subscribe - $15/month"
         │
         ▼
 App opens PayPal URL in Custom Tab:
-https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NG7EHNHCTAJ3L
+https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DHCKPWE3PJ684
         │
         ▼
 User logs into PayPal
