@@ -2,45 +2,42 @@ package com.termux.auth
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Build
-import android.provider.Settings
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.rpc
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.jsonPrimitive
-import java.util.Date
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 /**
- * Manages license verification and storage for MobileCLI Pro.
+ * Manages subscription/license verification for MobileCLI Pro.
+ *
+ * PRIVACY-FOCUSED: Only stores minimal data needed for license verification.
+ * - User ID (from Supabase auth)
+ * - Subscription status (active/trial/expired)
+ * - Expiry date
+ *
+ * NO personal data, NO payment details stored locally.
  *
  * Flow:
- * 1. User logs in
- * 2. App registers device with Supabase
- * 3. Supabase returns license key + expiration
- * 4. License stored locally (encrypted)
- * 5. App works offline using local license
- * 6. Every 30 days, re-verify when online
+ * 1. User logs in via Supabase Auth
+ * 2. App checks subscription status from Supabase
+ * 3. Status cached locally (encrypted) for offline use
+ * 4. Re-verify every 30 days when online
  */
 class LicenseManager(private val context: Context) {
 
     companion object {
         private const val TAG = "LicenseManager"
         private const val PREFS_NAME = "mobilecli_license"
-        private const val KEY_LICENSE_KEY = "license_key"
         private const val KEY_USER_ID = "user_id"
-        private const val KEY_USER_EMAIL = "user_email"
-        private const val KEY_TIER = "tier"
+        private const val KEY_STATUS = "status"
         private const val KEY_EXPIRES_AT = "expires_at"
         private const val KEY_LAST_VERIFIED = "last_verified"
-        private const val KEY_DEVICE_ID = "device_id"
 
         // Re-verify every 30 days (in milliseconds)
         private const val VERIFICATION_INTERVAL = 30L * 24 * 60 * 60 * 1000
@@ -66,45 +63,149 @@ class LicenseManager(private val context: Context) {
     }
 
     /**
-     * Get unique device ID for this installation.
+     * Subscription data from Supabase.
      */
-    fun getDeviceId(): String {
-        var deviceId = prefs.getString(KEY_DEVICE_ID, null)
-        if (deviceId == null) {
-            // Generate a unique device ID
-            deviceId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-                ?: java.util.UUID.randomUUID().toString()
-            prefs.edit().putString(KEY_DEVICE_ID, deviceId).apply()
+    @Serializable
+    data class Subscription(
+        val id: String? = null,
+        val user_id: String,
+        val status: String,
+        val paypal_subscription_id: String? = null,
+        val created_at: String? = null,
+        val updated_at: String? = null,
+        val expires_at: String? = null
+    )
+
+    /**
+     * Check subscription status from Supabase and cache locally.
+     * Call this after login.
+     */
+    suspend fun checkSubscription(): Result<SubscriptionStatus> = withContext(Dispatchers.IO) {
+        try {
+            val userId = SupabaseClient.getCurrentUserId()
+                ?: return@withContext Result.failure(Exception("Not logged in"))
+
+            Log.i(TAG, "Checking subscription for user: $userId")
+
+            // Query subscriptions table
+            val subscriptions = SupabaseClient.client.postgrest
+                .from("subscriptions")
+                .select(columns = Columns.ALL) {
+                    filter {
+                        eq("user_id", userId)
+                    }
+                }
+                .decodeList<Subscription>()
+
+            val subscription = subscriptions.firstOrNull()
+
+            if (subscription == null) {
+                // No subscription found - this shouldn't happen if trigger works
+                // Create a trial status locally
+                Log.w(TAG, "No subscription found, creating local trial")
+                val trialStatus = SubscriptionStatus(
+                    userId = userId,
+                    status = "trial",
+                    expiresAt = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000),
+                    lastVerified = System.currentTimeMillis()
+                )
+                saveStatus(trialStatus)
+                return@withContext Result.success(trialStatus)
+            }
+
+            // Parse expiry date
+            val expiresAt = subscription.expires_at?.let {
+                try {
+                    Instant.parse(it).toEpochMilli()
+                } catch (e: Exception) {
+                    // Default: 7 days for trial, 30 days for active
+                    if (subscription.status == "active") {
+                        System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000)
+                    } else {
+                        System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000)
+                    }
+                }
+            } ?: System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000)
+
+            val status = SubscriptionStatus(
+                userId = userId,
+                status = subscription.status,
+                expiresAt = expiresAt,
+                lastVerified = System.currentTimeMillis()
+            )
+
+            // Cache locally
+            saveStatus(status)
+
+            Log.i(TAG, "Subscription verified: status=${status.status}, expires=${status.expiresAt}")
+            Result.success(status)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check subscription", e)
+
+            // If offline, return cached status
+            val cached = getCachedStatus()
+            if (cached != null) {
+                Log.i(TAG, "Using cached subscription status")
+                return@withContext Result.success(cached)
+            }
+
+            Result.failure(e)
         }
-        return deviceId
     }
 
     /**
-     * Get device name for display.
+     * Get cached subscription status (for offline use).
      */
-    fun getDeviceName(): String {
-        return "${Build.MANUFACTURER} ${Build.MODEL}"
+    fun getCachedStatus(): SubscriptionStatus? {
+        val userId = prefs.getString(KEY_USER_ID, null) ?: return null
+        val status = prefs.getString(KEY_STATUS, null) ?: return null
+
+        return SubscriptionStatus(
+            userId = userId,
+            status = status,
+            expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0),
+            lastVerified = prefs.getLong(KEY_LAST_VERIFIED, 0)
+        )
     }
 
     /**
-     * Check if user has a valid local license.
-     * Returns true if license exists and hasn't expired.
+     * Check if user has valid access (active or valid trial).
      */
-    fun hasValidLocalLicense(): Boolean {
-        val licenseKey = prefs.getString(KEY_LICENSE_KEY, null) ?: return false
-        val expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0)
+    fun hasValidAccess(): Boolean {
+        val status = getCachedStatus() ?: return false
 
-        // Check if license has expired
-        if (expiresAt > 0 && System.currentTimeMillis() > expiresAt) {
-            Log.i(TAG, "Local license has expired")
-            return false
+        // Active subscription - always valid
+        if (status.status == "active") {
+            return true
         }
 
-        return licenseKey.isNotEmpty()
+        // Trial - check if not expired
+        if (status.status == "trial" && !status.isExpired()) {
+            return true
+        }
+
+        return false
     }
 
     /**
-     * Check if license needs re-verification (every 30 days).
+     * Check if user has paid Pro access.
+     */
+    fun hasProAccess(): Boolean {
+        val status = getCachedStatus() ?: return false
+        return status.status == "active"
+    }
+
+    /**
+     * Check if user is in trial period.
+     */
+    fun isInTrial(): Boolean {
+        val status = getCachedStatus() ?: return false
+        return status.status == "trial" && !status.isExpired()
+    }
+
+    /**
+     * Check if subscription needs re-verification.
      */
     fun needsVerification(): Boolean {
         val lastVerified = prefs.getLong(KEY_LAST_VERIFIED, 0)
@@ -113,189 +214,88 @@ class LicenseManager(private val context: Context) {
     }
 
     /**
-     * Get stored license info.
+     * Save subscription status to encrypted local storage.
      */
-    fun getLicenseInfo(): LicenseInfo? {
-        val licenseKey = prefs.getString(KEY_LICENSE_KEY, null) ?: return null
-        return LicenseInfo(
-            licenseKey = licenseKey,
-            userId = prefs.getString(KEY_USER_ID, null) ?: "",
-            userEmail = prefs.getString(KEY_USER_EMAIL, null) ?: "",
-            tier = prefs.getString(KEY_TIER, "free") ?: "free",
-            expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0),
-            lastVerified = prefs.getLong(KEY_LAST_VERIFIED, 0)
-        )
-    }
-
-    /**
-     * Register this device with Supabase and get a license.
-     * Called after successful login.
-     */
-    suspend fun registerDevice(): Result<LicenseInfo> = withContext(Dispatchers.IO) {
-        try {
-            val userId = SupabaseClient.getCurrentUserId()
-                ?: return@withContext Result.failure(Exception("Not logged in"))
-
-            val userEmail = SupabaseClient.getCurrentUserEmail() ?: ""
-            val deviceId = getDeviceId()
-            val deviceName = getDeviceName()
-
-            Log.i(TAG, "Registering device: $deviceId ($deviceName)")
-
-            // Call the register_device function in Supabase
-            val result = SupabaseClient.db.rpc(
-                "register_device",
-                mapOf(
-                    "p_user_id" to userId,
-                    "p_device_id" to deviceId,
-                    "p_device_name" to deviceName
-                )
-            ).decodeAs<JsonObject>()
-
-            val success = result["success"]?.jsonPrimitive?.boolean ?: false
-            if (!success) {
-                val error = result["error"]?.jsonPrimitive?.content ?: "Unknown error"
-                return@withContext Result.failure(Exception(error))
-            }
-
-            val licenseKey = result["license_key"]?.jsonPrimitive?.content ?: ""
-            val tier = result["tier"]?.jsonPrimitive?.content ?: "free"
-
-            // For free tier, license expires in 7 days (trial)
-            // For paid tier, it's set by subscription period end
-            val expiresAt = if (tier == "free") {
-                System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000) // 7 days trial
-            } else {
-                // Parse from result if available, otherwise 30 days
-                System.currentTimeMillis() + (30 * 24 * 60 * 60 * 1000)
-            }
-
-            // Store license locally
-            val licenseInfo = LicenseInfo(
-                licenseKey = licenseKey,
-                userId = userId,
-                userEmail = userEmail,
-                tier = tier,
-                expiresAt = expiresAt,
-                lastVerified = System.currentTimeMillis()
-            )
-            saveLicense(licenseInfo)
-
-            Log.i(TAG, "Device registered successfully. Tier: $tier, License: $licenseKey")
-            Result.success(licenseInfo)
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to register device", e)
-            Result.failure(e)
-        }
-    }
-
-    /**
-     * Verify the current license with Supabase.
-     * Called periodically (every 30 days) when online.
-     */
-    suspend fun verifyLicense(): Result<LicenseInfo> = withContext(Dispatchers.IO) {
-        try {
-            val licenseKey = prefs.getString(KEY_LICENSE_KEY, null)
-                ?: return@withContext Result.failure(Exception("No license stored"))
-
-            val deviceId = getDeviceId()
-
-            Log.i(TAG, "Verifying license: $licenseKey")
-
-            // Call the verify_license function in Supabase
-            val result = SupabaseClient.db.rpc(
-                "verify_license",
-                mapOf(
-                    "p_license_key" to licenseKey,
-                    "p_device_id" to deviceId
-                )
-            ).decodeAs<JsonObject>()
-
-            val valid = result["valid"]?.jsonPrimitive?.boolean ?: false
-            if (!valid) {
-                val error = result["error"]?.jsonPrimitive?.content ?: "License invalid"
-                clearLicense()
-                return@withContext Result.failure(Exception(error))
-            }
-
-            val tier = result["tier"]?.jsonPrimitive?.content ?: "free"
-            val userId = result["user_id"]?.jsonPrimitive?.content ?: ""
-
-            // Update stored license
-            val licenseInfo = LicenseInfo(
-                licenseKey = licenseKey,
-                userId = userId,
-                userEmail = prefs.getString(KEY_USER_EMAIL, null) ?: "",
-                tier = tier,
-                expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0),
-                lastVerified = System.currentTimeMillis()
-            )
-            saveLicense(licenseInfo)
-
-            Log.i(TAG, "License verified successfully. Tier: $tier")
-            Result.success(licenseInfo)
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to verify license", e)
-            // Don't clear license on network error - allow offline use
-            Result.failure(e)
-        }
-    }
-
-    /**
-     * Save license to encrypted storage.
-     */
-    private fun saveLicense(license: LicenseInfo) {
+    private fun saveStatus(status: SubscriptionStatus) {
         prefs.edit()
-            .putString(KEY_LICENSE_KEY, license.licenseKey)
-            .putString(KEY_USER_ID, license.userId)
-            .putString(KEY_USER_EMAIL, license.userEmail)
-            .putString(KEY_TIER, license.tier)
-            .putLong(KEY_EXPIRES_AT, license.expiresAt)
-            .putLong(KEY_LAST_VERIFIED, license.lastVerified)
+            .putString(KEY_USER_ID, status.userId)
+            .putString(KEY_STATUS, status.status)
+            .putLong(KEY_EXPIRES_AT, status.expiresAt)
+            .putLong(KEY_LAST_VERIFIED, status.lastVerified)
             .apply()
     }
 
     /**
-     * Clear stored license (on logout or invalid license).
+     * Clear cached subscription (on logout).
      */
-    fun clearLicense() {
+    fun clearCache() {
         prefs.edit()
-            .remove(KEY_LICENSE_KEY)
             .remove(KEY_USER_ID)
-            .remove(KEY_USER_EMAIL)
-            .remove(KEY_TIER)
+            .remove(KEY_STATUS)
             .remove(KEY_EXPIRES_AT)
             .remove(KEY_LAST_VERIFIED)
             .apply()
     }
 
     /**
-     * Check if user has Pro tier access.
+     * For backward compatibility with existing code.
      */
-    fun hasProAccess(): Boolean {
-        val tier = prefs.getString(KEY_TIER, "free")
-        return tier == "pro" || tier == "team"
+    fun hasValidLocalLicense(): Boolean = hasValidAccess()
+
+    fun getLicenseInfo(): LicenseInfo? {
+        val status = getCachedStatus() ?: return null
+        return LicenseInfo(
+            licenseKey = "", // Not used anymore
+            userId = status.userId,
+            userEmail = SupabaseClient.getCurrentUserEmail() ?: "",
+            tier = if (status.status == "active") "pro" else "free",
+            expiresAt = status.expiresAt,
+            lastVerified = status.lastVerified
+        )
     }
 
-    /**
-     * Check if user is in trial period.
-     */
-    fun isInTrial(): Boolean {
-        val tier = prefs.getString(KEY_TIER, "free")
-        return tier == "free" && hasValidLocalLicense()
+    suspend fun verifyLicense(): Result<LicenseInfo> {
+        val result = checkSubscription()
+        return result.map { status ->
+            LicenseInfo(
+                licenseKey = "",
+                userId = status.userId,
+                userEmail = SupabaseClient.getCurrentUserEmail() ?: "",
+                tier = if (status.status == "active") "pro" else "free",
+                expiresAt = status.expiresAt,
+                lastVerified = status.lastVerified
+            )
+        }
+    }
+
+    fun clearLicense() = clearCache()
+}
+
+/**
+ * Subscription status data.
+ */
+data class SubscriptionStatus(
+    val userId: String,
+    val status: String,  // "active", "trial", "cancelled", "expired"
+    val expiresAt: Long,
+    val lastVerified: Long
+) {
+    fun isExpired(): Boolean = expiresAt > 0 && System.currentTimeMillis() > expiresAt
+    fun isActive(): Boolean = status == "active"
+    fun daysUntilExpiry(): Int {
+        val remaining = expiresAt - System.currentTimeMillis()
+        return (remaining / (24 * 60 * 60 * 1000)).toInt().coerceAtLeast(0)
     }
 }
 
 /**
- * Data class representing license information.
+ * Legacy license info for backward compatibility.
  */
 data class LicenseInfo(
     val licenseKey: String,
     val userId: String,
     val userEmail: String,
-    val tier: String,  // "free", "pro", "team"
+    val tier: String,
     val expiresAt: Long,
     val lastVerified: Long
 ) {
