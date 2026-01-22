@@ -100,8 +100,28 @@ class LoginActivity : AppCompatActivity() {
 
         googleButton.setOnClickListener {
             hideKeyboard()
-            loginWithGoogle()
+            // Google OAuth requires additional setup in Supabase dashboard
+            Toast.makeText(this, "Google login requires configuration. Use email for now.", Toast.LENGTH_LONG).show()
         }
+
+        // Skip login button (demo mode)
+        findViewById<TextView>(R.id.skip_login).setOnClickListener {
+            skipLogin()
+        }
+    }
+
+    /**
+     * Skip login for development/testing.
+     * Long press on error text area to activate.
+     */
+    private fun skipLogin() {
+        // Go directly to app (SetupWizard or MainActivity)
+        if (!SetupWizard.isSetupComplete(this)) {
+            startActivity(Intent(this, SetupWizard::class.java))
+        } else {
+            startActivity(Intent(this, MainActivity::class.java))
+        }
+        finish()
     }
 
     private fun validateInput(email: String, password: String): Boolean {

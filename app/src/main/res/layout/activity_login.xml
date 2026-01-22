@@ -168,6 +168,17 @@
             android:gravity="center"
             android:layout_marginTop="16dp" />
 
+        <!-- Skip login for testing -->
+        <TextView
+            android:id="@+id/skip_login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Skip for now (Demo mode)"
+            android:textSize="14sp"
+            android:textColor="#6750A4"
+            android:padding="16dp"
+            android:layout_marginTop="24dp" />
+
     </LinearLayout>
 
 </ScrollView>
