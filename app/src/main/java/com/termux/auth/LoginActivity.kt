@@ -205,10 +205,10 @@ class LoginActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                // Start Google OAuth flow with custom redirect
-                SupabaseClient.auth.signInWith(Google) {
-                    redirectUrl = "com.termux://login-callback"
-                }
+                // Start Google OAuth flow
+                // Supabase Auth is configured with scheme="com.termux" and host="login-callback"
+                // so it will automatically use the correct redirect URL
+                SupabaseClient.auth.signInWith(Google)
 
                 Log.i(TAG, "Google login initiated")
                 // OAuth will redirect back to app via deep link
@@ -226,14 +226,19 @@ class LoginActivity : AppCompatActivity() {
         // Handle OAuth callback deep link
         intent?.data?.let { uri ->
             Log.i(TAG, "Received OAuth callback: $uri")
+            setLoading(true)
             lifecycleScope.launch {
                 try {
-                    SupabaseClient.auth.handleDeepLink(uri)
-                    if (SupabaseClient.isLoggedIn()) {
+                    val success = SupabaseClient.handleDeepLink(uri)
+                    if (success && SupabaseClient.isLoggedIn()) {
                         onLoginSuccess()
+                    } else {
+                        setLoading(false)
+                        showError("Login failed. Please try again.")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to handle OAuth callback", e)
+                    setLoading(false)
                     showError("Login failed. Please try again.")
                 }
             }

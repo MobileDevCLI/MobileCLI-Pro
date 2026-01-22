@@ -1,15 +1,16 @@
 package com.termux.auth
 
 import android.util.Log
+import android.content.Intent
+import android.net.Uri
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.gotrue.Auth
+import io.github.jan.supabase.gotrue.FlowType
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.Google
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.postgrest
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
 
 private const val TAG = "SupabaseClient"
 
@@ -36,7 +37,11 @@ object SupabaseClient {
                         supabaseKey = SUPABASE_ANON_KEY
                     ) {
                         install(Auth) {
-                            // Configure auth settings
+                            // Use PKCE flow for mobile OAuth
+                            flowType = FlowType.PKCE
+                            // Configure custom scheme for redirect
+                            scheme = "com.termux"
+                            host = "login-callback"
                         }
                         install(Postgrest) {
                             // Configure postgrest settings
@@ -144,5 +149,55 @@ object SupabaseClient {
             Log.e(TAG, "Failed to get user email", e)
             null
         }
+    }
+
+    /**
+     * Handle OAuth deep link callback.
+     * Call this when receiving a deep link intent.
+     * For PKCE flow, extracts the code parameter and exchanges it for a session.
+     */
+    suspend fun handleDeepLink(uri: Uri): Boolean {
+        return try {
+            Log.i(TAG, "Handling deep link: $uri")
+
+            // For PKCE flow, the callback contains a 'code' parameter
+            val code = uri.getQueryParameter("code")
+            if (code != null) {
+                Log.i(TAG, "Found authorization code, exchanging for session...")
+                auth.exchangeCodeForSession(code)
+                Log.i(TAG, "Session exchange complete, user logged in: ${isLoggedIn()}")
+                return isLoggedIn()
+            }
+
+            // Check for error in callback
+            val error = uri.getQueryParameter("error")
+            val errorDescription = uri.getQueryParameter("error_description")
+            if (error != null) {
+                Log.e(TAG, "OAuth error: $error - $errorDescription")
+                return false
+            }
+
+            // For implicit flow (fragment-based tokens)
+            val fragment = uri.fragment
+            if (fragment != null && fragment.contains("access_token")) {
+                Log.i(TAG, "Found access token in fragment, importing session...")
+                auth.importAuthToken(uri.getQueryParameter("access_token") ?: "")
+                return isLoggedIn()
+            }
+
+            Log.w(TAG, "No code, token, or error found in deep link")
+            false
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to handle deep link", e)
+            false
+        }
+    }
+
+    /**
+     * Handle OAuth deep link from Intent.
+     */
+    suspend fun handleDeepLink(intent: Intent): Boolean {
+        val uri = intent.data ?: return false
+        return handleDeepLink(uri)
     }
 }
