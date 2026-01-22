@@ -1,0 +1,15 @@
+## This file must *NOT* be checked into Version Control Systems,
+# as it contains information specific to your local configuration.
+#
+# Copy this file to 'local.properties' and fill in your values.
+
+# Location of the SDK. This is only used by Gradle.
+# On Windows: sdk.dir=C\:\\Users\\YOUR_USERNAME\\AppData\\Local\\Android\\Sdk
+# On Mac: sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+# On Linux: sdk.dir=/home/YOUR_USERNAME/Android/Sdk
+sdk.dir=
+
+# Keystore credentials for release signing (NEVER commit the real local.properties!)
+KEYSTORE_PASSWORD=your_keystore_password_here
+KEY_ALIAS=mobilecli
+KEY_PASSWORD=your_key_password_here

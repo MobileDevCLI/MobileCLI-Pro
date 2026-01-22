@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MobileCLI Pro"
+            android:textSize="32sp"
+            android:textColor="#6750A4"
+            android:textStyle="bold"
+            android:layout_marginTop="32dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unlock the full power of AI development"
+            android:textSize="16sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Features List -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#F5F5F5"
+            android:padding="20dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="What you get:"
+                android:textSize="16sp"
+                android:textColor="#1C1B1F"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓  Claude, Gemini, and Codex AI assistants"
+                android:textSize="14sp"
+                android:textColor="#49454F"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓  Build Android apps directly on your phone"
+                android:textSize="14sp"
+                android:textColor="#49454F"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓  79 Android permissions (root-equivalent)"
+                android:textSize="14sp"
+                android:textColor="#49454F"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓  Full Linux terminal environment"
+                android:textSize="14sp"
+                android:textColor="#49454F"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓  Offline mode (works without internet)"
+                android:textSize="14sp"
+                android:textColor="#49454F"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✓  Priority support"
+                android:textSize="14sp"
+                android:textColor="#49454F" />
+
+        </LinearLayout>
+
+        <!-- Trial Info -->
+        <TextView
+            android:id="@+id/trial_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start with a 7-day free trial"
+            android:textSize="14sp"
+            android:textColor="#10A37F"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Start Trial Button -->
+        <Button
+            android:id="@+id/start_trial_button"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Start Free Trial"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#10A37F"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Subscribe Button -->
+        <Button
+            android:id="@+id/subscribe_button"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Subscribe - $15/month"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#6750A4"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Price Info -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cancel anytime. No commitment."
+            android:textSize="12sp"
+            android:textColor="#999999"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Restore Purchase -->
+        <TextView
+            android:id="@+id/restore_purchase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Already subscribed? Restore purchase"
+            android:textSize="14sp"
+            android:textColor="#6750A4"
+            android:padding="8dp" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:indeterminateTint="#6750A4"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+
+</ScrollView>

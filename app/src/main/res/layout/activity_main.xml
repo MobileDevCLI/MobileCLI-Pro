@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<androidx.drawerlayout.widget.DrawerLayout
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Main content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#000000">
+
+        <!-- Session tabs - shown when multiple sessions exist -->
+        <HorizontalScrollView
+            android:id="@+id/session_tabs_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#111111"
+            android:visibility="gone"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/session_tabs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp" />
+
+        </HorizontalScrollView>
+
+        <com.termux.view.TerminalView
+            android:id="@+id/terminal_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+        <!-- Extra keys row 1 - Main controls -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#1a1a1a"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="2dp">
+
+                <Button
+                    android:id="@+id/btn_esc"
+                    style="@style/ExtraKeyButton"
+                    android:text="ESC" />
+
+                <Button
+                    android:id="@+id/btn_ctrl"
+                    style="@style/ExtraKeyButton"
+                    android:text="CTRL" />
+
+                <Button
+                    android:id="@+id/btn_alt"
+                    style="@style/ExtraKeyButton"
+                    android:text="ALT" />
+
+                <Button
+                    android:id="@+id/btn_tab"
+                    style="@style/ExtraKeyButton"
+                    android:text="TAB" />
+
+                <Button
+                    android:id="@+id/btn_home"
+                    style="@style/ExtraKeyButton"
+                    android:text="HOME" />
+
+                <Button
+                    android:id="@+id/btn_up"
+                    style="@style/ExtraKeyButton"
+                    android:text="▲" />
+
+                <Button
+                    android:id="@+id/btn_end"
+                    style="@style/ExtraKeyButton"
+                    android:text="END" />
+
+                <Button
+                    android:id="@+id/btn_pgup"
+                    style="@style/ExtraKeyButton"
+                    android:text="PGUP" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- Extra keys row 2 - Navigation and symbols -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#1a1a1a"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="2dp">
+
+                <Button
+                    android:id="@+id/btn_dash"
+                    style="@style/ExtraKeyButton"
+                    android:text="-" />
+
+                <Button
+                    android:id="@+id/btn_slash"
+                    style="@style/ExtraKeyButton"
+                    android:text="/" />
+
+                <Button
+                    android:id="@+id/btn_backslash"
+                    style="@style/ExtraKeyButton"
+                    android:text="\\" />
+
+                <Button
+                    android:id="@+id/btn_pipe"
+                    style="@style/ExtraKeyButton"
+                    android:text="|" />
+
+                <Button
+                    android:id="@+id/btn_left"
+                    style="@style/ExtraKeyButton"
+                    android:text="◀" />
+
+                <Button
+                    android:id="@+id/btn_down"
+                    style="@style/ExtraKeyButton"
+                    android:text="▼" />
+
+                <Button
+                    android:id="@+id/btn_right"
+                    style="@style/ExtraKeyButton"
+                    android:text="▶" />
+
+                <Button
+                    android:id="@+id/btn_pgdn"
+                    style="@style/ExtraKeyButton"
+                    android:text="PGDN" />
+
+                <Button
+                    android:id="@+id/btn_tilde"
+                    style="@style/ExtraKeyButton"
+                    android:text="~" />
+
+                <Button
+                    android:id="@+id/btn_underscore"
+                    style="@style/ExtraKeyButton"
+                    android:text="_" />
+
+                <Button
+                    android:id="@+id/btn_colon"
+                    style="@style/ExtraKeyButton"
+                    android:text=":" />
+
+                <Button
+                    android:id="@+id/btn_quote"
+                    style="@style/ExtraKeyButton"
+                    android:text="&quot;" />
+
+                <Button
+                    android:id="@+id/btn_more"
+                    style="@style/ExtraKeyButton"
+                    android:text="≡"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+    </LinearLayout>
+
+    <!-- Navigation drawer (swipe from left) -->
+    <ScrollView
+        android:layout_width="280dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="#1a1a1a"
+        android:fillViewport="true">
+
+    <LinearLayout
+        android:id="@+id/nav_drawer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MobileCLI"
+            android:textSize="24sp"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mobile AI Development"
+            android:textSize="14sp"
+            android:textColor="#888888"
+            android:paddingBottom="24dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#333333" />
+
+        <!-- Sessions section header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SESSIONS"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:paddingStart="8dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="4dp" />
+
+        <!-- Sessions list container -->
+        <LinearLayout
+            android:id="@+id/sessions_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- New Session button -->
+        <TextView
+            android:id="@+id/nav_new_session"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="+ New Session"
+            android:textSize="16sp"
+            android:textColor="#4CAF50"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#333333"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Menu section header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MENU"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:paddingStart="8dp"
+            android:paddingBottom="4dp" />
+
+        <TextView
+            android:id="@+id/nav_settings"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Settings"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/nav_keyboard"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Toggle Keyboard"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/nav_text_size"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Text Size"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <!-- Wake Lock Toggle -->
+        <TextView
+            android:id="@+id/nav_wake_lock"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Wake Lock: OFF"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <!-- Power Mode (skip permission prompts) -->
+        <TextView
+            android:id="@+id/nav_power_mode"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Power Mode"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#333333"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/nav_install_ai"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Install AI Tools"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <!-- Vercel CLI -->
+        <TextView
+            android:id="@+id/nav_vercel"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Vercel CLI"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <!-- GitHub CLI -->
+        <TextView
+            android:id="@+id/nav_github"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="GitHub CLI"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <!-- AI Briefing - Fetches comprehensive AI documentation -->
+        <TextView
+            android:id="@+id/nav_ai_briefing"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="AI Briefing"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <!-- Update - Fetches latest updates/instructions from website -->
+        <TextView
+            android:id="@+id/nav_update"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Update"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/nav_help"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Help"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/nav_about"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="About"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/nav_licenses"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Open Source Licenses"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/nav_privacy"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Privacy Policy"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <TextView
+            android:id="@+id/nav_terms"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Terms of Service"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
+        <!-- Developer Options (hidden by default) -->
+        <View
+            android:id="@+id/dev_options_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#333333"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/nav_dev_options_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DEVELOPER"
+            android:textSize="12sp"
+            android:textColor="#ff6b6b"
+            android:paddingStart="8dp"
+            android:paddingBottom="4dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/nav_dev_mode"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Developer Mode: ON"
+            android:textSize="16sp"
+            android:textColor="#ff6b6b"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/nav_install_dev_tools"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Install Dev Tools"
+            android:textSize="16sp"
+            android:textColor="#ff6b6b"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:visibility="gone" />
+
+        <!-- Version info at bottom (tappable for dev mode) -->
+        <TextView
+            android:id="@+id/nav_version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Version 1.8.1"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:paddingTop="16dp" />
+
+    </LinearLayout>
+    </ScrollView>
+
+</androidx.drawerlayout.widget.DrawerLayout>
+
+<!-- Setup Overlay (shown during bootstrap in user mode) - AAA Professional Design -->
+<FrameLayout
+    android:id="@+id/setup_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:visibility="gone"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Stage 1: Progress Screen (Environment Setup) -->
+    <LinearLayout
+        android:id="@+id/setup_progress_screen"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <!-- App Logo/Title -->
+        <TextView
+            android:id="@+id/setup_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MobileCLI"
+            android:textColor="#6750A4"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/setup_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="AI-Powered Terminal"
+            android:textColor="#49454F"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="48dp" />
+
+        <!-- Status Message -->
+        <TextView
+            android:id="@+id/setup_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Setting up your environment..."
+            android:textColor="#1C1B1F"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/setup_progress"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="#6750A4"
+            android:progressBackgroundTint="#E7E0EC"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Percentage -->
+        <TextView
+            android:id="@+id/setup_percentage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textColor="#6750A4"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Current Step -->
+        <TextView
+            android:id="@+id/setup_step"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#79747E"
+            android:textSize="12sp"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+    <!-- Stage 2: AI Choice Screen - AAA Professional Design -->
+    <ScrollView
+        android:id="@+id/ai_choice_screen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:fillViewport="true"
+        android:background="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center">
+
+            <!-- Title -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Choose Your AI"
+                android:textColor="#1C1B1F"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select an AI assistant to power your development"
+                android:textColor="#49454F"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:layout_marginBottom="32dp" />
+
+            <!-- Claude Card - AAA Professional -->
+            <LinearLayout
+                android:id="@+id/ai_card_claude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/ai_card_background"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Claude"
+                        android:textColor="#6750A4"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="RECOMMENDED"
+                        android:textColor="#FFFFFF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:background="#6750A4"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="by Anthropic"
+                    android:textColor="#49454F"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="The most capable AI for coding. Builds entire apps, debugs complex issues, and writes production-quality code."
+                    android:textColor="#49454F"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <!-- Gemini Card - AAA Professional -->
+            <LinearLayout
+                android:id="@+id/ai_card_gemini"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/ai_card_background"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Gemini"
+                    android:textColor="#4285F4"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="by Google"
+                    android:textColor="#49454F"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Google's multimodal AI. Great for research, documentation, and general development tasks."
+                    android:textColor="#49454F"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <!-- Codex Card - AAA Professional -->
+            <LinearLayout
+                android:id="@+id/ai_card_codex"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/ai_card_background"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Codex"
+                    android:textColor="#10A37F"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="by OpenAI"
+                    android:textColor="#49454F"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="OpenAI's code-focused model. Specializes in code completion and generation."
+                    android:textColor="#49454F"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <!-- Basic Terminal Card - AAA Professional -->
+            <LinearLayout
+                android:id="@+id/ai_card_none"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/ai_card_background"
+                android:padding="20dp"
+                android:layout_marginBottom="24dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Basic Terminal"
+                    android:textColor="#79747E"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Skip AI for now"
+                    android:textColor="#49454F"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Full Linux terminal without AI. You can install AI tools later from settings."
+                    android:textColor="#49454F"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Hidden dev mode trigger (top-right corner) -->
+    <View
+        android:id="@+id/dev_mode_trigger"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="top|end" />
+
+</FrameLayout>
+
+</FrameLayout>

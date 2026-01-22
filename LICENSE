@@ -1,0 +1,53 @@
+MobileCLI - Proprietary Software License
+========================================
+
+Copyright (c) 2026 MobileCLI Team. All rights reserved.
+
+PROPRIETARY AND CONFIDENTIAL
+
+This software and its source code are the exclusive property of the
+MobileCLI Team. Unauthorized copying, modification, distribution,
+or use of this software, in whole or in part, is strictly prohibited.
+
+NO LICENSE GRANTED
+------------------
+This repository does not grant any license to use, copy, modify,
+or distribute the software. All rights are reserved.
+
+WHAT THIS COVERS
+----------------
+All original source code in this repository, including but not limited to:
+
+- MainActivity.kt (~1,400 lines)
+- BootstrapInstaller.kt (~2,900 lines)
+- TermuxApiReceiver.kt (~2,000 lines)
+- SetupWizard.kt (~800 lines)
+- TermuxService.kt (~600 lines)
+- AmSocketServer.kt (~440 lines)
+- All other Kotlin/Java files in app/src/main/java/
+
+Total: ~9,000+ lines of original, proprietary code.
+
+THIRD-PARTY COMPONENTS
+----------------------
+This software incorporates third-party open source components which
+are licensed separately. See THIRD_PARTY_LICENSES.md for details.
+
+These third-party components are:
+- terminal-view (Apache License 2.0)
+- terminal-emulator (Apache License 2.0)
+- AndroidX libraries (Apache License 2.0)
+
+RUNTIME DOWNLOADS
+-----------------
+Users download additional software at runtime (bash, node, python, etc.)
+from Termux package repositories. These are NOT bundled with MobileCLI
+and are subject to their own licenses.
+
+CONTACT
+-------
+For licensing inquiries: https://mobilecli.com
+GitHub: https://github.com/MobileDevCLI
+
+========================================
+(c) 2026 MobileCLI Team. All Rights Reserved.

@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- Welcome Section -->
+    <LinearLayout
+        android:id="@+id/welcome_section"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="&gt;_"
+            android:textSize="64sp"
+            android:textColor="#00ff88"
+            android:fontFamily="monospace"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MobileCLI"
+            android:textSize="36sp"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI Development in Your Pocket"
+            android:textSize="18sp"
+            android:textColor="#a0a0a0"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Run Claude Code, Gemini CLI, and Codex\ndirectly on your Android phone."
+            android:textSize="14sp"
+            android:textColor="#707070"
+            android:gravity="center"
+            android:layout_marginTop="32dp" />
+
+        <Button
+            android:id="@+id/btn_get_started"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Get Started"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:backgroundTint="#00ff88"
+            android:paddingHorizontal="48dp"
+            android:paddingVertical="12dp"
+            android:layout_marginTop="48dp" />
+
+    </LinearLayout>
+
+    <!-- Setup Section (Bootstrap) -->
+    <LinearLayout
+        android:id="@+id/setup_section"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Setting Up"
+            android:textSize="28sp"
+            android:textColor="#ffffff"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Preparing your development environment..."
+            android:textSize="14sp"
+            android:textColor="#a0a0a0"
+            android:gravity="center"
+            android:layout_marginTop="16dp" />
+
+        <ProgressBar
+            android:id="@+id/setup_progress"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginHorizontal="32dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="#00ff88"
+            android:progressBackgroundTint="#333333" />
+
+        <TextView
+            android:id="@+id/progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Initializing..."
+            android:textSize="12sp"
+            android:textColor="#707070"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+    <!-- AI Choice Section -->
+    <LinearLayout
+        android:id="@+id/ai_choice_section"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose Your AI"
+            android:textSize="28sp"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:layout_marginTop="48dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Which AI assistant would you like to install?"
+            android:textSize="14sp"
+            android:textColor="#a0a0a0"
+            android:layout_marginTop="8dp" />
+
+        <RadioGroup
+            android:id="@+id/ai_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:padding="16dp">
+
+            <RadioButton
+                android:id="@+id/radio_claude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Claude Code (Recommended)"
+                android:textColor="#ffffff"
+                android:textSize="16sp"
+                android:buttonTint="#00ff88"
+                android:padding="12dp"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/radio_gemini"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Gemini CLI"
+                android:textColor="#ffffff"
+                android:textSize="16sp"
+                android:buttonTint="#00ff88"
+                android:padding="12dp" />
+
+            <RadioButton
+                android:id="@+id/radio_codex"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Codex CLI"
+                android:textColor="#ffffff"
+                android:textSize="16sp"
+                android:buttonTint="#00ff88"
+                android:padding="12dp" />
+
+            <RadioButton
+                android:id="@+id/radio_all"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Install All"
+                android:textColor="#ffffff"
+                android:textSize="16sp"
+                android:buttonTint="#00ff88"
+                android:padding="12dp" />
+
+            <RadioButton
+                android:id="@+id/radio_none"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="None (Basic Terminal)"
+                android:textColor="#a0a0a0"
+                android:textSize="16sp"
+                android:buttonTint="#00ff88"
+                android:padding="12dp" />
+
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="32dp">
+
+            <Button
+                android:id="@+id/btn_skip_ai"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Skip"
+                android:textSize="14sp"
+                android:textColor="#a0a0a0"
+                android:backgroundTint="#333333"
+                android:paddingHorizontal="32dp"
+                android:layout_marginEnd="16dp" />
+
+            <Button
+                android:id="@+id/btn_continue_ai"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Install"
+                android:textSize="14sp"
+                android:textColor="#000000"
+                android:backgroundTint="#00ff88"
+                android:paddingHorizontal="32dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Installing Section -->
+    <LinearLayout
+        android:id="@+id/installing_section"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:indeterminate="true"
+            android:indeterminateTint="#00ff88" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Installing"
+            android:textSize="24sp"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp" />
+
+        <TextView
+            android:id="@+id/installing_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This may take a few minutes..."
+            android:textSize="14sp"
+            android:textColor="#a0a0a0"
+            android:gravity="center"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+    <!-- Ready Section -->
+    <LinearLayout
+        android:id="@+id/ready_section"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✓"
+            android:textSize="72sp"
+            android:textColor="#00ff88" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="You're Ready!"
+            android:textSize="28sp"
+            android:textColor="#ffffff"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/hint_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Type 'claude' to start coding with AI"
+            android:textSize="14sp"
+            android:textColor="#a0a0a0"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:layout_marginHorizontal="32dp" />
+
+        <Button
+            android:id="@+id/btn_launch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Launch Terminal"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:backgroundTint="#00ff88"
+            android:paddingHorizontal="48dp"
+            android:paddingVertical="12dp"
+            android:layout_marginTop="48dp" />
+
+    </LinearLayout>
+
+</FrameLayout>

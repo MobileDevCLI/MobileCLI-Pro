@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/setup_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp">
+
+        <!-- App Logo/Title -->
+        <TextView
+            android:id="@+id/setup_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MobileCLI"
+            android:textColor="#00ff88"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/setup_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="AI-Powered Terminal"
+            android:textColor="#888888"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="48dp" />
+
+        <!-- Status Message -->
+        <TextView
+            android:id="@+id/setup_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Setting up your environment..."
+            android:textColor="#ffffff"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/setup_progress"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:max="100"
+            android:progress="0"
+            android:progressTint="#00ff88"
+            android:progressBackgroundTint="#333333"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Percentage -->
+        <TextView
+            android:id="@+id/setup_percentage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textColor="#00ff88"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Current Step -->
+        <TextView
+            android:id="@+id/setup_step"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#666666"
+            android:textSize="12sp"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+    <!-- Hidden developer mode indicator (long-press area) -->
+    <View
+        android:id="@+id/dev_mode_trigger"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="top|end"
+        android:background="@android:color/transparent" />
+
+</FrameLayout>
