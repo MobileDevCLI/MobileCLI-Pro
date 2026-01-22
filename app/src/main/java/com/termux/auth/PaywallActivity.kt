@@ -25,17 +25,16 @@ import kotlinx.coroutines.launch
  *
  * Shows subscription options and handles:
  * - Free trial (7 days)
- * - Pro subscription ($15/month)
- * - Redirects to Stripe checkout via website
+ * - Pro subscription ($15/month via PayPal)
+ * - Redirects to PayPal subscription checkout
  */
 class PaywallActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "PaywallActivity"
 
-        // Stripe checkout URL (handled by your website)
-        private const val CHECKOUT_URL = "https://mobilecli.com/checkout"
-        private const val PRICING_URL = "https://mobilecli.com/pricing.html"
+        // PayPal subscription URL
+        private const val PAYPAL_SUBSCRIBE_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NG7EHNHCTAJ3L"
 
         fun start(context: Context) {
             val intent = Intent(context, PaywallActivity::class.java)
@@ -99,32 +98,20 @@ class PaywallActivity : AppCompatActivity() {
     }
 
     private fun openCheckout() {
-        // Get user email for checkout prefill
-        val email = SupabaseClient.getCurrentUserEmail() ?: ""
-        val userId = SupabaseClient.getCurrentUserId() ?: ""
-
-        // Build checkout URL with user info
-        val checkoutUrl = Uri.parse(PRICING_URL)
-            .buildUpon()
-            .appendQueryParameter("email", email)
-            .appendQueryParameter("user_id", userId)
-            .build()
-            .toString()
-
-        // Open in Custom Tab (better UX than WebView)
+        // Open PayPal subscription page
         try {
             val customTabsIntent = CustomTabsIntent.Builder()
                 .setShowTitle(true)
                 .build()
-            customTabsIntent.launchUrl(this, Uri.parse(checkoutUrl))
+            customTabsIntent.launchUrl(this, Uri.parse(PAYPAL_SUBSCRIBE_URL))
         } catch (e: Exception) {
             // Fallback to browser
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PAYPAL_SUBSCRIBE_URL))
             startActivity(intent)
         }
 
         // When they come back, we'll check subscription status
-        Toast.makeText(this, "Complete payment in browser, then return here", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Complete payment in PayPal, then return here", Toast.LENGTH_LONG).show()
     }
 
     private fun restorePurchase() {
