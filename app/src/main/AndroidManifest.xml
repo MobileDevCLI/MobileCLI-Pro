@@ -231,9 +231,20 @@
         <!-- Login Activity - Email/OAuth authentication -->
         <activity
             android:name=".auth.LoginActivity"
-            android:exported="false"
+            android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.MobileCLI.NoActionBar"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize">
+            <!-- Deep link for OAuth callback -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="com.termux"
+                    android:host="login-callback" />
+            </intent-filter>
+        </activity>
 
         <!-- Paywall Activity - Subscription/trial flow -->
         <activity

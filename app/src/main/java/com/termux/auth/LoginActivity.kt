@@ -205,16 +205,37 @@ class LoginActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                // Start Google OAuth flow
-                SupabaseClient.auth.signInWith(Google)
+                // Start Google OAuth flow with custom redirect
+                SupabaseClient.auth.signInWith(Google) {
+                    redirectUrl = "com.termux://login-callback"
+                }
 
                 Log.i(TAG, "Google login initiated")
-                // OAuth will redirect back to app
+                // OAuth will redirect back to app via deep link
 
             } catch (e: Exception) {
                 Log.e(TAG, "Google login failed", e)
                 setLoading(false)
                 showError("Google sign-in failed. Please try again.")
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        // Handle OAuth callback deep link
+        intent?.data?.let { uri ->
+            Log.i(TAG, "Received OAuth callback: $uri")
+            lifecycleScope.launch {
+                try {
+                    SupabaseClient.auth.handleDeepLink(uri)
+                    if (SupabaseClient.isLoggedIn()) {
+                        onLoginSuccess()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to handle OAuth callback", e)
+                    showError("Login failed. Please try again.")
+                }
             }
         }
     }
