@@ -173,9 +173,11 @@ class PaywallActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        // Check if user subscribed while in browser
+        // Check if user subscribed while in PayPal browser
         lifecycleScope.launch {
-            delay(500) // Brief delay to ensure Stripe webhook processed
+            // Wait for PayPal IPN webhook to be processed by Supabase
+            // PayPal typically sends IPN within 1-2 seconds
+            delay(2000)
 
             val result = licenseManager.verifyLicense()
             if (result.isSuccess) {
@@ -183,10 +185,13 @@ class PaywallActivity : AppCompatActivity() {
                 if (license.isPro()) {
                     Toast.makeText(
                         this@PaywallActivity,
-                        "Subscription activated!",
+                        "Subscription activated! Welcome to Pro!",
                         Toast.LENGTH_SHORT
                     ).show()
                     proceedToApp()
+                } else {
+                    // Maybe webhook hasn't processed yet - update UI
+                    updateTrialInfo()
                 }
             }
         }
