@@ -38,15 +38,15 @@
 |-----|-----|
 | Account screen transparent background | Added #121212 background color |
 | Deprecated onBackPressed (Android 13+) | Replaced with OnBackPressedCallback |
+| **CRITICAL: Webhook field mismatch** | Changed `current_period_end` to `expires_at` |
 
 ### Git Commits (Latest First)
 ```
+d882f05 Update documentation with critical webhook fix discovered in code audit
+be0d9ef Fix critical webhook bug: field name mismatch
+b6817f4 Update documentation with bug fixes, account management
 1e12297 Fix bugs: Add background color, fix deprecated onBackPressed
 13136ff Add Account screen with logout, subscription management
-0b72018 Add CURRENT_STATE.md for AI context recovery
-99f3c6f Add user_id matching for PayPal webhook (industry standard)
-6fe3c2e Update webhook to REST API format + documentation
-fb7f18a Update PayPal to use subscription plan ID P-3RH33892X5467024SNFZON2Y
 ```
 
 ---
@@ -87,25 +87,22 @@ fb7f18a Update PayPal to use subscription plan ID P-3RH33892X5467024SNFZON2Y
 | File | Purpose | Deploy To |
 |------|---------|-----------|
 | `MobileCLI-Pro-v2.0.0-FINAL.apk` | **RELEASE APK** - All features + bug fixes | Website, Test phone |
-| `paypal-webhook-v3-with-userid.txt` | Webhook code (already deployed) | Supabase Edge Function |
+| `paypal-webhook-v4-FIXED.txt` | Webhook code (backup) | Already deployed |
 
 ---
 
-## TO COMPLETE SETUP
+## SETUP COMPLETE
 
-### Step 1: Redeploy Webhook (REQUIRED)
-1. Open: https://supabase.com/dashboard/project/mwxlguqukyfberyhtkmg/functions/paypal-webhook
-2. Click "Code" tab
-3. Open `/sdcard/Download/paypal-webhook-v3-with-userid.txt` on phone
-4. Copy ALL code
-5. Paste into Supabase (replace everything)
-6. Click "Deploy updates"
-7. Verify "JWT verification" is OFF in Details tab
+### Webhook Status: DEPLOYED
+- Webhook v4 with `expires_at` fix deployed to Supabase on Jan 22, 2026
+- JWT verification: OFF
+- All subscription events configured
 
-### Step 2: Install APK
-Send `/sdcard/Download/MobileCLI-Pro-v2.0.0-USERID.apk` to test phone and install.
+### APK Status: READY
+- File: `/sdcard/Download/MobileCLI-Pro-v2.0.0-FINAL.apk`
+- Use for website download and test phones
 
-### Step 3: Test
+### Test Flow
 1. Login with Google
 2. Click Subscribe
 3. Complete PayPal payment
@@ -163,9 +160,9 @@ The webhook now uses this priority:
 ## TESTING CHECKLIST
 
 ### Pre-Test
-- [ ] Webhook redeployed with v3 code (user_id matching)
-- [ ] JWT verification OFF
-- [ ] APK installed on test phone
+- [x] Webhook redeployed with v4 code (expires_at fix)
+- [x] JWT verification OFF
+- [x] APK built and ready
 
 ### Test Flow
 - [ ] Fresh install → Bootstrap works

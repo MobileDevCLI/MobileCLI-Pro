@@ -50,11 +50,11 @@ This is the release-ready APK with all features and bug fixes.
 ## GIT HISTORY (Latest)
 
 ```
+d882f05 Update documentation with critical webhook fix discovered in code audit
 be0d9ef Fix critical webhook bug: field name mismatch
 b6817f4 Update documentation with bug fixes, account management
 1e12297 Fix bugs: Add background color, fix deprecated onBackPressed
 13136ff Add Account screen with logout, subscription management
-0b72018 Add CURRENT_STATE.md for AI context recovery
 ```
 
 ---
@@ -64,9 +64,9 @@ b6817f4 Update documentation with bug fixes, account management
 | File | Purpose |
 |------|---------|
 | `MobileCLI-Pro-v2.0.0-FINAL.apk` | **USE THIS FOR WEBSITE** |
-| `paypal-webhook-v4-FIXED.txt` | **REDEPLOY THIS** - Critical bug fix |
+| `paypal-webhook-v4-FIXED.txt` | Webhook code (backup) |
 
-**ACTION REQUIRED:** Redeploy `paypal-webhook-v4-FIXED.txt` to Supabase Edge Functions.
+**STATUS:** Webhook redeployed to Supabase on Jan 22, 2026. All systems ready.
 
 ---
 
