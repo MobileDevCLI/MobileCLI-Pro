@@ -150,7 +150,10 @@
             android:text="Already subscribed? Restore purchase"
             android:textSize="14sp"
             android:textColor="#6750A4"
-            android:padding="8dp" />
+            android:padding="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground" />
 
         <!-- Progress Bar -->
         <ProgressBar

@@ -188,47 +188,64 @@ class PaywallActivity : AppCompatActivity() {
     }
 
     private fun restorePurchase() {
+        Log.i(TAG, "Restore purchase clicked")
+
+        // Immediate feedback
+        Toast.makeText(this, "Checking subscription...", Toast.LENGTH_SHORT).show()
+
         val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
         progressBar.visibility = View.VISIBLE
 
+        // Disable button while checking
+        findViewById<TextView>(R.id.restore_purchase).isEnabled = false
+
         lifecycleScope.launch {
             try {
+                Log.i(TAG, "Verifying license with server...")
+
                 // Re-verify license from server
                 val result = licenseManager.verifyLicense()
 
+                Log.i(TAG, "License result: ${result.isSuccess}, ${result.getOrNull()}")
+
                 if (result.isSuccess) {
                     val license = result.getOrNull()!!
+                    Log.i(TAG, "License tier: ${license.tier}, isPro: ${license.isPro()}")
+
                     if (license.isPro()) {
                         Toast.makeText(
                             this@PaywallActivity,
-                            "Subscription restored!",
-                            Toast.LENGTH_SHORT
+                            "Subscription restored! Welcome back!",
+                            Toast.LENGTH_LONG
                         ).show()
                         proceedToApp()
                     } else {
                         Toast.makeText(
                             this@PaywallActivity,
-                            "No active subscription found",
-                            Toast.LENGTH_SHORT
+                            "No active subscription found. Please subscribe or check your PayPal account.",
+                            Toast.LENGTH_LONG
                         ).show()
                     }
                 } else {
+                    val errorMsg = result.exceptionOrNull()?.message ?: "Unknown error"
+                    Log.e(TAG, "Restore failed: $errorMsg")
                     Toast.makeText(
                         this@PaywallActivity,
-                        "Could not restore: ${result.exceptionOrNull()?.message}",
-                        Toast.LENGTH_SHORT
+                        "Could not restore: $errorMsg",
+                        Toast.LENGTH_LONG
                     ).show()
                 }
 
             } catch (e: Exception) {
-                Log.e(TAG, "Restore failed", e)
+                Log.e(TAG, "Restore failed with exception", e)
                 Toast.makeText(
                     this@PaywallActivity,
-                    "Restore failed. Please try again.",
-                    Toast.LENGTH_SHORT
+                    "Restore failed: ${e.message}. Please check your internet connection.",
+                    Toast.LENGTH_LONG
                 ).show()
             } finally {
                 progressBar.visibility = View.GONE
+                findViewById<TextView>(R.id.restore_purchase).isEnabled = true
             }
         }
     }
