@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.lifecycleScope
@@ -53,6 +54,17 @@ class PaywallActivity : AppCompatActivity() {
         licenseManager = LicenseManager(this)
 
         setupUI()
+        setupBackHandler()
+    }
+
+    private fun setupBackHandler() {
+        // Modern back press handling (replaces deprecated onBackPressed)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Don't allow back from paywall - must subscribe or start trial
+                Toast.makeText(this@PaywallActivity, "Please start a trial or subscribe to continue", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun setupUI() {
@@ -211,8 +223,4 @@ class PaywallActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        // Don't allow back from paywall - must subscribe or start trial
-        Toast.makeText(this, "Please start a trial or subscribe to continue", Toast.LENGTH_SHORT).show()
-    }
 }
