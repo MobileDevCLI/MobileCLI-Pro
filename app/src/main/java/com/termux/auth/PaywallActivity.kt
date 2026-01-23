@@ -33,8 +33,9 @@ class PaywallActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "PaywallActivity"
 
-        // PayPal subscription URL (Business account button)
-        private const val PAYPAL_SUBSCRIBE_URL = "https://www.paypal.com/ncp/payment/DHCKPWE3PJ684"
+        // PayPal subscription URL (Subscription Plan)
+        private const val PAYPAL_PLAN_ID = "P-3RH33892X5467024SNFZON2Y"
+        private const val PAYPAL_SUBSCRIBE_URL = "https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=$PAYPAL_PLAN_ID"
 
         fun start(context: Context) {
             val intent = Intent(context, PaywallActivity::class.java)
