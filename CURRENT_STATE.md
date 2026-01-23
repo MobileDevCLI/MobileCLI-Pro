@@ -43,17 +43,18 @@ This is the release-ready APK with all features and bug fixes.
 ### Bug Fixes Applied
 - Fixed: Account screen transparent background → Added #121212
 - Fixed: Deprecated onBackPressed (Android 13+) → OnBackPressedCallback
+- **CRITICAL:** Webhook field mismatch → Changed `current_period_end` to `expires_at`
 
 ---
 
 ## GIT HISTORY (Latest)
 
 ```
+be0d9ef Fix critical webhook bug: field name mismatch
+b6817f4 Update documentation with bug fixes, account management
 1e12297 Fix bugs: Add background color, fix deprecated onBackPressed
 13136ff Add Account screen with logout, subscription management
 0b72018 Add CURRENT_STATE.md for AI context recovery
-99f3c6f Add user_id matching for PayPal webhook
-6fe3c2e Update webhook to REST API format
 ```
 
 ---
@@ -63,7 +64,9 @@ This is the release-ready APK with all features and bug fixes.
 | File | Purpose |
 |------|---------|
 | `MobileCLI-Pro-v2.0.0-FINAL.apk` | **USE THIS FOR WEBSITE** |
-| `paypal-webhook-v3-with-userid.txt` | Webhook code (already deployed) |
+| `paypal-webhook-v4-FIXED.txt` | **REDEPLOY THIS** - Critical bug fix |
+
+**ACTION REQUIRED:** Redeploy `paypal-webhook-v4-FIXED.txt` to Supabase Edge Functions.
 
 ---
 
