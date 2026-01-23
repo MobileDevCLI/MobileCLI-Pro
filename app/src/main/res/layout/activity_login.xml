@@ -108,14 +108,13 @@
             android:backgroundTint="#E8DEF8"
             android:layout_marginBottom="24dp" />
 
-        <!-- Divider - HIDDEN until Google OAuth is fixed -->
+        <!-- Divider -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="24dp"
-            android:visibility="gone">
+            android:layout_marginBottom="24dp">
 
             <View
                 android:layout_width="0dp"
@@ -138,7 +137,7 @@
 
         </LinearLayout>
 
-        <!-- Google Sign In Button - HIDDEN until OAuth is fixed -->
+        <!-- Google Sign In Button -->
         <Button
             android:id="@+id/google_button"
             android:layout_width="match_parent"
@@ -149,8 +148,7 @@
             android:backgroundTint="#F5F5F5"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="12dp"
-            android:layout_marginBottom="32dp"
-            android:visibility="gone" />
+            android:layout_marginBottom="32dp" />
 
         <!-- Progress Bar -->
         <ProgressBar

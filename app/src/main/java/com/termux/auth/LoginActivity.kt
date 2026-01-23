@@ -190,33 +190,34 @@ class LoginActivity : AppCompatActivity() {
     private fun loginWithGoogle() {
         setLoading(true)
 
-        try {
-            // Use browser-based OAuth with PKCE - works on ALL devices
-            // Unlike Credential Manager, this doesn't fail silently
-            val redirectUrl = "com.termux://login-callback"
-            val oauthUrl = SupabaseClient.getGoogleOAuthUrlWithPKCE(redirectUrl)
-
-            Log.i(TAG, "Opening Google OAuth in browser: $oauthUrl")
-
-            // Open in Chrome Custom Tab for better UX
+        lifecycleScope.launch {
             try {
-                val customTabsIntent = CustomTabsIntent.Builder()
-                    .setShowTitle(true)
-                    .build()
-                customTabsIntent.launchUrl(this, Uri.parse(oauthUrl))
-                Log.i(TAG, "Opened Chrome Custom Tab for OAuth")
-            } catch (e: Exception) {
-                // Fallback to regular browser
-                Log.w(TAG, "Custom tab failed, using browser", e)
-                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(oauthUrl))
-                startActivity(browserIntent)
-            }
-            // Don't set loading to false - wait for callback in onNewIntent
+                // Use Supabase SDK's signInWith for proper PKCE handling
+                // The SDK handles code_verifier generation and storage
+                Log.i(TAG, "Starting Google OAuth via Supabase SDK")
+                SupabaseClient.auth.signInWith(Google)
+                Log.i(TAG, "Google OAuth initiated successfully")
+                // Callback will come via deep link to onNewIntent()
 
-        } catch (e: Exception) {
-            Log.e(TAG, "Google login failed: ${e.message}", e)
-            setLoading(false)
-            showError("Google sign-in failed. Please try again or use email login.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Google login failed: ${e.javaClass.simpleName}: ${e.message}", e)
+                runOnUiThread {
+                    setLoading(false)
+                    // Provide helpful error message based on error type
+                    val errorMsg = when {
+                        e.message?.contains("Credential", ignoreCase = true) == true ||
+                        e.message?.contains("GetCredential", ignoreCase = true) == true ->
+                            "Google Sign-In unavailable on this device. Please use email login."
+                        e.message?.contains("canceled", ignoreCase = true) == true ||
+                        e.message?.contains("cancelled", ignoreCase = true) == true ->
+                            "Sign-in cancelled. Please try again."
+                        e.message?.contains("network", ignoreCase = true) == true ->
+                            "Network error. Please check your connection."
+                        else -> "Google sign-in failed: ${e.message}"
+                    }
+                    showError(errorMsg)
+                }
+            }
         }
     }
 
