@@ -252,6 +252,13 @@
             android:exported="false"
             android:theme="@style/Theme.MobileCLI.NoActionBar" />
 
+        <!-- Account Activity - Profile, subscription management, logout -->
+        <activity
+            android:name=".auth.AccountActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MobileCLI"
+            android:parentActivityName=".MainActivity" />
+
         <!-- ============================================ -->
         <!-- MAIN ACTIVITIES -->
         <!-- ============================================ -->

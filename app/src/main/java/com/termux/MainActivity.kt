@@ -415,6 +415,12 @@ class MainActivity : AppCompatActivity(), TerminalViewClient, TerminalSessionCli
     private fun setupDrawer() {
         drawerLayout = findViewById(R.id.drawer_layout)
 
+        // Account button - Industry standard account management
+        findViewById<TextView>(R.id.nav_account)?.setOnClickListener {
+            com.termux.auth.AccountActivity.start(this)
+            drawerLayout.closeDrawers()
+        }
+
         findViewById<TextView>(R.id.nav_new_session)?.setOnClickListener {
             createSession()
             drawerLayout.closeDrawers()

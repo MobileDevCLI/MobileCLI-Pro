@@ -213,7 +213,20 @@
             android:text="Mobile AI Development"
             android:textSize="14sp"
             android:textColor="#888888"
-            android:paddingBottom="24dp" />
+            android:paddingBottom="16dp" />
+
+        <!-- Account Button - Industry Standard -->
+        <TextView
+            android:id="@+id/nav_account"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Account"
+            android:textSize="16sp"
+            android:textColor="#2196F3"
+            android:paddingStart="8dp"
+            android:paddingBottom="8dp"
+            android:background="?android:attr/selectableItemBackground" />
 
         <View
             android:layout_width="match_parent"
