@@ -65,6 +65,9 @@ class LoginActivity : AppCompatActivity() {
 
         initViews()
         setupListeners()
+        
+        // Handle OAuth callback if launched via deep link
+        handleIntent(intent)
     }
 
     private fun initViews() {
@@ -168,13 +171,16 @@ class LoginActivity : AppCompatActivity() {
 
                 // Show confirmation message
                 runOnUiThread {
-                    setLoading(false)
                     Toast.makeText(
                         this@LoginActivity,
-                        "Account created! Please check your email to confirm.",
+                        "Account created! Please check your email to verify.",
                         Toast.LENGTH_LONG
                     ).show()
                 }
+
+                // After signup, user needs to verify email
+                // For now, we'll let them proceed (Supabase handles verification)
+                onLoginSuccess()
 
             } catch (e: Exception) {
                 Log.e(TAG, "Signup failed", e)
@@ -192,11 +198,12 @@ class LoginActivity : AppCompatActivity() {
                 // Use browser-based OAuth flow (works on all Android versions)
                 // The Credential Manager approach crashes on some devices
                 val redirectUrl = "com.termux://login-callback"
+                
+                // Build OAuth URL for Supabase
+                val supabaseUrl = "https://mwxlguqukyfberyhtkmg.supabase.co"
+                val oauthUrl = "$supabaseUrl/auth/v1/authorize?provider=google&redirect_to=${Uri.encode(redirectUrl)}"
 
-                // Get the OAuth URL from Supabase
-                val url = SupabaseClient.getGoogleOAuthUrl(redirectUrl)
-
-                Log.i(TAG, "Opening Google OAuth in browser: $url")
+                Log.i(TAG, "Opening Google OAuth in browser: $oauthUrl")
 
                 // Open in Chrome Custom Tab for better UX
                 runOnUiThread {
@@ -204,17 +211,18 @@ class LoginActivity : AppCompatActivity() {
                         val customTabsIntent = CustomTabsIntent.Builder()
                             .setShowTitle(true)
                             .build()
-                        customTabsIntent.launchUrl(this@LoginActivity, Uri.parse(url))
+                        customTabsIntent.launchUrl(this@LoginActivity, Uri.parse(oauthUrl))
                     } catch (e: Exception) {
                         // Fallback to regular browser
                         Log.w(TAG, "Custom tab failed, using browser", e)
-                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(oauthUrl))
                         startActivity(browserIntent)
                     }
                 }
 
                 Log.i(TAG, "Google login initiated via browser")
                 // User will be redirected back via deep link
+                // Don't set loading to false - wait for callback
 
             } catch (e: Exception) {
                 Log.e(TAG, "Google login failed", e)
@@ -228,25 +236,45 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+    
+    private fun handleIntent(intent: Intent?) {
         // Handle OAuth callback deep link
         intent?.data?.let { uri ->
-            Log.i(TAG, "Received OAuth callback: $uri")
-            setLoading(true)
-            lifecycleScope.launch {
-                try {
-                    val success = SupabaseClient.handleDeepLink(uri)
-                    if (success && SupabaseClient.isLoggedIn()) {
-                        onLoginSuccess()
-                    } else {
+            if (uri.scheme == "com.termux" && uri.host == "login-callback") {
+                Log.i(TAG, "Received OAuth callback: $uri")
+                setLoading(true)
+                lifecycleScope.launch {
+                    try {
+                        val success = SupabaseClient.handleDeepLink(uri)
+                        if (success && SupabaseClient.isLoggedIn()) {
+                            onLoginSuccess()
+                        } else {
+                            setLoading(false)
+                            showError("Login failed. Please try again.")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to handle OAuth callback", e)
                         setLoading(false)
                         showError("Login failed. Please try again.")
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to handle OAuth callback", e)
-                    setLoading(false)
-                    showError("Login failed. Please try again.")
                 }
             }
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // If we're resuming and loading is true but no intent data,
+        // user probably cancelled - reset loading state
+        if (progressBar.visibility == View.VISIBLE && intent?.data == null) {
+            // Give a brief delay to allow deep link to arrive
+            progressBar.postDelayed({
+                if (progressBar.visibility == View.VISIBLE && !SupabaseClient.isLoggedIn()) {
+                    setLoading(false)
+                }
+            }, 1000)
         }
     }
 
@@ -259,39 +287,38 @@ class LoginActivity : AppCompatActivity() {
             // Register device and get license
             val result = licenseManager.registerDevice()
 
-            if (result.isSuccess) {
-                val license = result.getOrNull()!!
-                Log.i(TAG, "Device registered. Tier: ${license.tier}")
-
-                runOnUiThread {
-                    if (license.tier == "free") {
-                        // Show paywall for free users
-                        PaywallActivity.start(this@LoginActivity)
-                    } else {
-                        // Pro user - go to setup or main
-                        proceedToApp()
-                    }
-                }
-            } else {
-                // Registration failed but login succeeded
-                // Allow access with basic tier
-                Log.w(TAG, "Device registration failed: ${result.exceptionOrNull()?.message}")
-                runOnUiThread {
-                    PaywallActivity.start(this@LoginActivity)
-                }
-            }
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Post-login setup failed", e)
             runOnUiThread {
                 setLoading(false)
-                showError("Setup failed. Please try again.")
+
+                if (result.isSuccess) {
+                    val license = result.getOrNull()!!
+                    Log.i(TAG, "Device registered, license tier: ${license.tier}")
+
+                    // Proceed based on license
+                    if (license.isPro()) {
+                        // Pro user - go directly to app
+                        proceedToApp()
+                    } else {
+                        // Free/trial user - go to paywall
+                        goToPaywall()
+                    }
+                } else {
+                    // Registration failed - still let them proceed but with limited access
+                    Log.w(TAG, "Device registration failed: ${result.exceptionOrNull()?.message}")
+                    goToPaywall()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "onLoginSuccess error", e)
+            runOnUiThread {
+                setLoading(false)
+                goToPaywall()
             }
         }
     }
 
     private fun proceedToApp() {
-        // Check if setup is complete
+        // Check if setup wizard needs to run
         if (!SetupWizard.isSetupComplete(this)) {
             startActivity(Intent(this, SetupWizard::class.java))
         } else {
@@ -300,21 +327,29 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 
+    private fun goToPaywall() {
+        startActivity(Intent(this, PaywallActivity::class.java))
+        finish()
+    }
+
     private fun setLoading(loading: Boolean) {
-        runOnUiThread {
-            progressBar.visibility = if (loading) View.VISIBLE else View.GONE
-            loginButton.isEnabled = !loading
-            signupButton.isEnabled = !loading
-            googleButton.isEnabled = !loading
-            emailInput.isEnabled = !loading
-            passwordInput.isEnabled = !loading
-        }
+        progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+        loginButton.isEnabled = !loading
+        signupButton.isEnabled = !loading
+        googleButton.isEnabled = !loading
+        emailInput.isEnabled = !loading
+        passwordInput.isEnabled = !loading
     }
 
     private fun showError(message: String) {
-        runOnUiThread {
-            errorText.text = message
-            errorText.visibility = View.VISIBLE
+        errorText.text = message
+        errorText.visibility = View.VISIBLE
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        currentFocus?.let {
+            imm.hideSoftInputFromWindow(it.windowToken, 0)
         }
     }
 
@@ -322,27 +357,12 @@ class LoginActivity : AppCompatActivity() {
         val message = e.message ?: "Unknown error"
         return when {
             message.contains("Invalid login credentials") -> "Invalid email or password"
-            message.contains("Email not confirmed") -> "Please confirm your email first"
+            message.contains("Email not confirmed") -> "Please verify your email first"
             message.contains("User already registered") -> "An account with this email already exists"
-            message.contains("network") -> "Network error. Please check your connection."
-            else -> message
-        }
-    }
-
-    private fun hideKeyboard() {
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        currentFocus?.let {
-            imm.hideSoftInputFromWindow(it.windowToken, 0)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Check if user logged in via OAuth redirect
-        if (SupabaseClient.isLoggedIn()) {
-            lifecycleScope.launch {
-                onLoginSuccess()
-            }
+            message.contains("Password should be at least") -> "Password must be at least 6 characters"
+            message.contains("Unable to validate email") -> "Please enter a valid email address"
+            message.contains("network") || message.contains("timeout") -> "Network error. Please check your connection."
+            else -> "Error: $message"
         }
     }
 }
