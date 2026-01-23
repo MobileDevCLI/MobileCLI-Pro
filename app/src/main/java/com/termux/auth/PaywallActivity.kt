@@ -105,11 +105,12 @@ class PaywallActivity : AppCompatActivity() {
     }
 
     private fun setupBackHandler() {
-        // Modern back press handling (replaces deprecated onBackPressed)
+        // Allow back button - go back to login
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Don't allow back from paywall - must subscribe or start trial
-                Toast.makeText(this@PaywallActivity, "Please start a trial or subscribe to continue", Toast.LENGTH_SHORT).show()
+                // Go back to login screen
+                startActivity(Intent(this@PaywallActivity, LoginActivity::class.java))
+                finish()
             }
         })
     }
