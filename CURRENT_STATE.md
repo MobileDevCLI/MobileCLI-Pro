@@ -2,15 +2,31 @@
 
 **Date:** January 23, 2026
 **Status:** READY FOR RELEASE
-**Version:** 2.0.1-PAYMENT-FIX
+**Version:** 2.0.3-OAUTH-FIX
 
 ---
 
 ## LATEST APK
 
-**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.1-PAYMENT-FIX.apk`
+**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.3-OAUTH-FIX.apk`
 
-This APK includes the PayPal payment success deep link handler fix.
+This APK includes:
+- Google OAuth browser-based flow (fixes crash)
+- PayPal payment success deep link handler
+- Restore Purchase button fix
+
+---
+
+## APK VERSION HISTORY (For Revert)
+
+| Version | File | Changes |
+|---------|------|---------|
+| **v2.0.3-OAUTH-FIX** | `MobileCLI-Pro-v2.0.3-OAUTH-FIX.apk` | **LATEST** - Google OAuth crash fix |
+| v2.0.2-RESTORE-FIX | `MobileCLI-Pro-v2.0.2-RESTORE-FIX.apk` | Restore Purchase button clickability |
+| v2.0.1-PAYMENT-FIX | `MobileCLI-Pro-v2.0.1-PAYMENT-FIX.apk` | PayPal deep link handler |
+| v2.0.0-FINAL | `MobileCLI-Pro-v2.0.0-FINAL.apk` | Original release |
+
+All APKs stored in `/sdcard/Download/` for easy revert.
 
 ---
 
@@ -47,18 +63,22 @@ This APK includes the PayPal payment success deep link handler fix.
 - Fixed: Account screen transparent background → Added #121212
 - Fixed: Deprecated onBackPressed (Android 13+) → OnBackPressedCallback
 - Fixed: Webhook field mismatch → Changed `current_period_end` to `expires_at`
-- **NEW:** Fixed: PayPal 404 on return → Added deep link + website success page
+- Fixed: PayPal 404 on return → Added deep link + website success page
+- Fixed: Restore Purchase button not responding → Added clickable/focusable attributes
+- **NEW:** Fixed: Google OAuth crash → Switched to browser-based PKCE flow
 
 ---
 
 ## GIT HISTORY (Latest)
 
 ```
+5400f26 Fix Google OAuth crash - use browser-based flow
+4ae869e Fix Restore Purchase button not responding
+2af1fbc Update documentation for v2.0.1-PAYMENT-FIX
 7728d70 Add payment success deep link handler
 4f93451 Update documentation: webhook deployed, all systems ready
 d882f05 Update documentation with critical webhook fix discovered in code audit
 be0d9ef Fix critical webhook bug: field name mismatch
-b6817f4 Update documentation with bug fixes, account management
 ```
 
 ---
@@ -78,8 +98,10 @@ Vercel auto-deploys from `MobileDevCLI/website` repo.
 
 | File | Purpose |
 |------|---------|
-| `MobileCLI-Pro-v2.0.1-PAYMENT-FIX.apk` | **LATEST - Use for testing** |
-| `MobileCLI-Pro-v2.0.0-FINAL.apk` | Previous version |
+| `MobileCLI-Pro-v2.0.3-OAUTH-FIX.apk` | **LATEST - Use for testing** |
+| `MobileCLI-Pro-v2.0.2-RESTORE-FIX.apk` | Previous (restore button fix) |
+| `MobileCLI-Pro-v2.0.1-PAYMENT-FIX.apk` | Previous (payment deep link) |
+| `MobileCLI-Pro-v2.0.0-FINAL.apk` | Original release |
 | `FULL_IMPLEMENTATION_PLAN.md` | Complete payment flow documentation |
 | `COMPREHENSIVE_AUDIT_v2.txt` | Full code audit report |
 
