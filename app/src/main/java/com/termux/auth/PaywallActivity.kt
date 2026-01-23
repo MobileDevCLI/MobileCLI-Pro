@@ -55,6 +55,53 @@ class PaywallActivity : AppCompatActivity() {
 
         setupUI()
         setupBackHandler()
+
+        // Handle deep link from payment success page
+        handlePaymentSuccessDeepLink(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { handlePaymentSuccessDeepLink(it) }
+    }
+
+    private fun handlePaymentSuccessDeepLink(intent: Intent) {
+        val uri = intent.data
+        if (uri != null) {
+            val isPaymentSuccess = uri.scheme == "com.termux" && uri.host == "payment-success" ||
+                                   uri.host == "www.mobilecli.com" && uri.path?.startsWith("/success") == true
+
+            if (isPaymentSuccess) {
+                Log.i(TAG, "Payment success deep link received: $uri")
+                // Show loading and verify subscription
+                findViewById<ProgressBar>(R.id.progress_bar).visibility = View.VISIBLE
+
+                lifecycleScope.launch {
+                    // Give webhook time to process
+                    delay(2000)
+                    verifyAndProceed()
+                }
+            }
+        }
+    }
+
+    private suspend fun verifyAndProceed() {
+        val result = licenseManager.verifyLicense()
+
+        findViewById<ProgressBar>(R.id.progress_bar).visibility = View.GONE
+
+        if (result.isSuccess) {
+            val license = result.getOrNull()!!
+            if (license.isPro()) {
+                Toast.makeText(this, "Payment successful! Welcome to Pro!", Toast.LENGTH_SHORT).show()
+                proceedToApp()
+            } else {
+                // Webhook might not have processed yet
+                Toast.makeText(this, "Processing payment... Please wait a moment and try 'Restore Purchase'", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(this, "Could not verify subscription. Try 'Restore Purchase' in a moment.", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun setupBackHandler() {

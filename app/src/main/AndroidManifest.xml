@@ -249,8 +249,29 @@
         <!-- Paywall Activity - Subscription/trial flow -->
         <activity
             android:name=".auth.PaywallActivity"
-            android:exported="false"
-            android:theme="@style/Theme.MobileCLI.NoActionBar" />
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.MobileCLI.NoActionBar">
+            <!-- Deep link for PayPal payment success return -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="com.termux"
+                    android:host="payment-success" />
+            </intent-filter>
+            <!-- HTTPS App Link for payment success (requires assetlinks.json on server) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="www.mobilecli.com"
+                    android:pathPrefix="/success" />
+            </intent-filter>
+        </activity>
 
         <!-- Account Activity - Profile, subscription management, logout -->
         <activity
