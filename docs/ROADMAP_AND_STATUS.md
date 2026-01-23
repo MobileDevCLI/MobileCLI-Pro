@@ -1,8 +1,8 @@
 # MobileCLI Pro - Complete Roadmap & Status
 
 **Last Updated:** January 22, 2026
-**Current Version:** 2.0.0-rc.3 (Build 137)
-**Status:** Ready for Testing - Redeploy Webhook First
+**Current Version:** 2.0.0-FINAL
+**Status:** READY FOR RELEASE
 
 ---
 
@@ -25,15 +25,28 @@
 2. **Fixed Webhook Format** - Updated from IPN format to REST API format
 3. **Added User ID Matching** - App passes user_id to PayPal, webhook matches by ID (not just email)
 4. **Configured PayPal Webhooks** - All BILLING.SUBSCRIPTION.* events enabled
-5. **Multiple APK builds** - Final version includes all fixes
+5. **Added Account Screen** - Industry standard account management (logout, manage subscription)
+6. **Bug Fixes** - Fixed transparent background, deprecated onBackPressed
+
+### New Features Added
+- **Account Screen** (`AccountActivity.kt`) - Profile, logout, manage subscription
+- **Drawer Menu** - "Account" button added for easy access
+- **Multi-device Support** - Login on any device with same account
+
+### Bug Fixes Applied
+| Bug | Fix |
+|-----|-----|
+| Account screen transparent background | Added #121212 background color |
+| Deprecated onBackPressed (Android 13+) | Replaced with OnBackPressedCallback |
 
 ### Git Commits (Latest First)
 ```
+1e12297 Fix bugs: Add background color, fix deprecated onBackPressed
+13136ff Add Account screen with logout, subscription management
+0b72018 Add CURRENT_STATE.md for AI context recovery
 99f3c6f Add user_id matching for PayPal webhook (industry standard)
 6fe3c2e Update webhook to REST API format + documentation
 fb7f18a Update PayPal to use subscription plan ID P-3RH33892X5467024SNFZON2Y
-b74c284 Add comprehensive ROADMAP_AND_STATUS.md
-2ee5cb7 Add comprehensive AI environment documentation (CLAUDE.md)
 ```
 
 ---
@@ -73,8 +86,8 @@ b74c284 Add comprehensive ROADMAP_AND_STATUS.md
 
 | File | Purpose | Deploy To |
 |------|---------|-----------|
-| `MobileCLI-Pro-v2.0.0-USERID.apk` | Latest APK with all fixes | Test phone |
-| `paypal-webhook-v3-with-userid.txt` | Latest webhook code | Supabase Edge Function |
+| `MobileCLI-Pro-v2.0.0-FINAL.apk` | **RELEASE APK** - All features + bug fixes | Website, Test phone |
+| `paypal-webhook-v3-with-userid.txt` | Webhook code (already deployed) | Supabase Edge Function |
 
 ---
 

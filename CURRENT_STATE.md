@@ -1,27 +1,20 @@
 # MobileCLI Pro - Current State (For AI Context Recovery)
 
 **Date:** January 22, 2026
-**Status:** READY FOR TESTING
+**Status:** READY FOR RELEASE
+**Version:** 2.0.0-FINAL
 
 ---
 
-## WHAT TO TEST RIGHT NOW
+## LATEST APK
 
-**APK:** `/sdcard/Download/MobileCLI-Pro-v2.0.0-USERID.apk`
+**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.0-FINAL.apk`
 
-**Webhook:** Already deployed to Supabase (v3 with user_id matching)
-
-**Test Flow:**
-1. Install APK on test phone
-2. Login with Google
-3. Click Subscribe → Opens PayPal subscription
-4. Complete $15 payment
-5. Press back → App should detect Pro status
-6. Terminal should open (not paywall)
+This is the release-ready APK with all features and bug fixes.
 
 ---
 
-## KEY IDS (MEMORIZE THESE)
+## KEY IDS
 
 | Item | Value |
 |------|-------|
@@ -31,40 +24,71 @@
 
 ---
 
-## WHAT WAS BUILT TODAY
+## FEATURES COMPLETED
 
-1. **PayPal Subscription** - $15/month recurring (not one-time)
-2. **Webhook v3** - Handles REST events + user_id matching
-3. **App Update** - Passes user_id to PayPal for matching
+### Authentication & Payments
+- Google OAuth + Email/Password login
+- PayPal subscription ($15/month recurring)
+- User ID matching (any PayPal account works)
+- Webhook handles all subscription events
+- Multi-device login support
+
+### Account Management (Industry Standard)
+- Account screen with profile display
+- Logout button with confirmation
+- Manage Subscription (opens PayPal)
+- Restore Purchase functionality
+- Delete Account option
+
+### Bug Fixes Applied
+- Fixed: Account screen transparent background → Added #121212
+- Fixed: Deprecated onBackPressed (Android 13+) → OnBackPressedCallback
+
+---
+
+## GIT HISTORY (Latest)
+
+```
+1e12297 Fix bugs: Add background color, fix deprecated onBackPressed
+13136ff Add Account screen with logout, subscription management
+0b72018 Add CURRENT_STATE.md for AI context recovery
+99f3c6f Add user_id matching for PayPal webhook
+6fe3c2e Update webhook to REST API format
+```
 
 ---
 
 ## FILES IN /sdcard/Download/
 
-| File | Use |
-|------|-----|
-| `MobileCLI-Pro-v2.0.0-USERID.apk` | **TEST THIS ONE** |
+| File | Purpose |
+|------|---------|
+| `MobileCLI-Pro-v2.0.0-FINAL.apk` | **USE THIS FOR WEBSITE** |
 | `paypal-webhook-v3-with-userid.txt` | Webhook code (already deployed) |
 
 ---
 
-## GIT STATUS
+## TEST FLOW
 
-Branch: master (up to date)
-Latest commits:
-- eed4e49 Update documentation
-- 99f3c6f Add user_id matching
-- 6fe3c2e Update webhook to REST format
-- fb7f18a Update PayPal plan ID
+1. Install APK on test phone
+2. Login with Google
+3. Click Subscribe → Opens PayPal subscription
+4. Complete $15 payment (can use any PayPal account)
+5. Press back → App detects Pro status
+6. Terminal opens (not paywall)
+7. Open drawer → Click "Account" → See profile, logout option
 
 ---
 
 ## IMPORTANT FILES
 
-- `docs/ROADMAP_AND_STATUS.md` - Full documentation
-- `CLAUDE.md` - AI environment guide (ARM/Termux)
-- `app/src/main/java/com/termux/auth/PaywallActivity.kt` - PayPal integration
-- `supabase/functions/paypal-webhook/index.ts` - Webhook code
+| File | Purpose |
+|------|---------|
+| `CURRENT_STATE.md` | Quick AI context recovery |
+| `docs/ROADMAP_AND_STATUS.md` | Full documentation |
+| `CLAUDE.md` | AI environment guide |
+| `app/src/main/java/com/termux/auth/AccountActivity.kt` | Account screen |
+| `app/src/main/java/com/termux/auth/PaywallActivity.kt` | PayPal integration |
+| `supabase/functions/paypal-webhook/index.ts` | Webhook code |
 
 ---
 
@@ -72,23 +96,19 @@ Latest commits:
 
 - BootstrapInstaller.kt
 - SetupWizard.kt
-- MainActivity.kt
+- MainActivity.kt (except drawer setup)
 - AndroidManifest.xml
 - gradle.properties
 
 ---
 
-## NEXT STEPS AFTER TESTING
+## WEBSITE DEPLOYMENT
 
-If test works:
-- Remove free trial button (user wants subscription only)
-- Update website with download link
-
-If test fails:
-- Check Supabase function logs for webhook errors
-- Verify JWT verification is OFF
-- Check if user_id is being passed in PayPal URL
+Use `/sdcard/Download/MobileCLI-Pro-v2.0.0-FINAL.apk` for:
+- Direct download link
+- GitHub Releases
+- Any file hosting
 
 ---
 
-*This file helps AI recover context after compaction*
+*Last updated: January 22, 2026*
