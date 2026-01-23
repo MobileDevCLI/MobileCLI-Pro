@@ -262,29 +262,10 @@ class PaywallActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-
-        // Check if user subscribed while in PayPal browser
-        lifecycleScope.launch {
-            // Wait for PayPal IPN webhook to be processed by Supabase
-            // PayPal typically sends IPN within 1-2 seconds
-            delay(2000)
-
-            val result = licenseManager.verifyLicense()
-            if (result.isSuccess) {
-                val license = result.getOrNull()!!
-                if (license.isPro()) {
-                    Toast.makeText(
-                        this@PaywallActivity,
-                        "Subscription activated! Welcome to Pro!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    proceedToApp()
-                } else {
-                    // Maybe webhook hasn't processed yet - update UI
-                    updateTrialInfo()
-                }
-            }
-        }
+        // Don't auto-check on every resume - it causes loops and crashes
+        // User must explicitly click "Restore Purchase" to check subscription
+        // This prevents the crash loop when coming back from PayPal
+        updateTrialInfo()
     }
 
 }

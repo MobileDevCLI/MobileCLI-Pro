@@ -65,9 +65,6 @@ class LoginActivity : AppCompatActivity() {
 
         initViews()
         setupListeners()
-        
-        // Handle OAuth callback if launched via deep link
-        handleIntent(intent)
     }
 
     private fun initViews() {
@@ -195,40 +192,30 @@ class LoginActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                // Use browser-based OAuth flow (works on all Android versions)
-                // The Credential Manager approach crashes on some devices
-                val redirectUrl = "com.termux://login-callback"
-                
-                // Build OAuth URL for Supabase
-                val supabaseUrl = "https://mwxlguqukyfberyhtkmg.supabase.co"
-                val oauthUrl = "$supabaseUrl/auth/v1/authorize?provider=google&redirect_to=${Uri.encode(redirectUrl)}"
-
-                Log.i(TAG, "Opening Google OAuth in browser: $oauthUrl")
-
-                // Open in Chrome Custom Tab for better UX
-                runOnUiThread {
-                    try {
-                        val customTabsIntent = CustomTabsIntent.Builder()
-                            .setShowTitle(true)
-                            .build()
-                        customTabsIntent.launchUrl(this@LoginActivity, Uri.parse(oauthUrl))
-                    } catch (e: Exception) {
-                        // Fallback to regular browser
-                        Log.w(TAG, "Custom tab failed, using browser", e)
-                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(oauthUrl))
-                        startActivity(browserIntent)
-                    }
-                }
-
-                Log.i(TAG, "Google login initiated via browser")
-                // User will be redirected back via deep link
-                // Don't set loading to false - wait for callback
+                // Use Supabase SDK's signInWith for proper PKCE handling
+                // The SDK handles code_verifier generation and storage
+                Log.i(TAG, "Starting Google OAuth via Supabase SDK")
+                SupabaseClient.auth.signInWith(Google)
+                Log.i(TAG, "Google OAuth initiated successfully")
+                // Callback will come via deep link to onNewIntent()
 
             } catch (e: Exception) {
-                Log.e(TAG, "Google login failed", e)
+                Log.e(TAG, "Google login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 runOnUiThread {
                     setLoading(false)
-                    showError("Google sign-in failed: ${e.message}")
+                    // Provide helpful error message based on error type
+                    val errorMsg = when {
+                        e.message?.contains("Credential", ignoreCase = true) == true ||
+                        e.message?.contains("GetCredential", ignoreCase = true) == true ->
+                            "Google Sign-In unavailable on this device. Please use email login."
+                        e.message?.contains("canceled", ignoreCase = true) == true ||
+                        e.message?.contains("cancelled", ignoreCase = true) == true ->
+                            "Sign-in cancelled. Please try again."
+                        e.message?.contains("network", ignoreCase = true) == true ->
+                            "Network error. Please check your connection."
+                        else -> "Google sign-in failed: ${e.message}"
+                    }
+                    showError(errorMsg)
                 }
             }
         }
@@ -236,45 +223,40 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        handleIntent(intent)
-    }
-    
-    private fun handleIntent(intent: Intent?) {
         // Handle OAuth callback deep link
         intent?.data?.let { uri ->
-            if (uri.scheme == "com.termux" && uri.host == "login-callback") {
-                Log.i(TAG, "Received OAuth callback: $uri")
-                setLoading(true)
-                lifecycleScope.launch {
-                    try {
-                        val success = SupabaseClient.handleDeepLink(uri)
-                        if (success && SupabaseClient.isLoggedIn()) {
-                            onLoginSuccess()
-                        } else {
-                            setLoading(false)
-                            showError("Login failed. Please try again.")
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to handle OAuth callback", e)
+            Log.i(TAG, "Received OAuth callback: $uri")
+            setLoading(true)
+            lifecycleScope.launch {
+                try {
+                    val success = SupabaseClient.handleDeepLink(uri)
+                    if (success && SupabaseClient.isLoggedIn()) {
+                        onLoginSuccess()
+                    } else {
                         setLoading(false)
                         showError("Login failed. Please try again.")
                     }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to handle OAuth callback", e)
+                    setLoading(false)
+                    showError("Login failed. Please try again.")
                 }
             }
         }
     }
-    
+
     override fun onResume() {
         super.onResume()
-        // If we're resuming and loading is true but no intent data,
-        // user probably cancelled - reset loading state
-        if (progressBar.visibility == View.VISIBLE && intent?.data == null) {
-            // Give a brief delay to allow deep link to arrive
+        // Reset loading state if user returns from OAuth without completing
+        // Don't auto-redirect here - SplashActivity handles initial auth check
+        // This prevents "immediately kicks away" bug from stale sessions
+        if (progressBar.visibility == View.VISIBLE) {
+            // Give brief delay for deep link to arrive, then reset if no login
             progressBar.postDelayed({
-                if (progressBar.visibility == View.VISIBLE && !SupabaseClient.isLoggedIn()) {
+                if (!isFinishing && progressBar.visibility == View.VISIBLE) {
                     setLoading(false)
                 }
-            }, 1000)
+            }, 2000)
         }
     }
 
