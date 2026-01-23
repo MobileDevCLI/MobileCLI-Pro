@@ -99,15 +99,28 @@ class PaywallActivity : AppCompatActivity() {
     }
 
     private fun openCheckout() {
+        // Get user ID to pass to PayPal for webhook matching
+        val userId = SupabaseClient.getCurrentUserId()
+
+        // Build PayPal URL with custom_id for user matching
+        // This allows webhook to match user even if PayPal email differs from login email
+        val subscribeUrl = if (userId != null) {
+            "$PAYPAL_SUBSCRIBE_URL&custom_id=$userId"
+        } else {
+            PAYPAL_SUBSCRIBE_URL
+        }
+
+        Log.d(TAG, "Opening PayPal checkout with user_id: $userId")
+
         // Open PayPal subscription page
         try {
             val customTabsIntent = CustomTabsIntent.Builder()
                 .setShowTitle(true)
                 .build()
-            customTabsIntent.launchUrl(this, Uri.parse(PAYPAL_SUBSCRIBE_URL))
+            customTabsIntent.launchUrl(this, Uri.parse(subscribeUrl))
         } catch (e: Exception) {
             // Fallback to browser
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PAYPAL_SUBSCRIBE_URL))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(subscribeUrl))
             startActivity(intent)
         }
 
