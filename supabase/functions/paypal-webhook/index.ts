@@ -194,9 +194,8 @@ async function handleSubscriptionActivated(supabase: any, resource: any) {
     .upsert({
       user_id: user.id,
       status: 'active',
-      plan: 'pro',
       paypal_subscription_id: subscriptionId,
-      current_period_end: expiresAt.toISOString(),
+      expires_at: expiresAt.toISOString(),
       updated_at: new Date().toISOString()
     }, {
       onConflict: 'user_id'
@@ -335,8 +334,8 @@ async function handlePaymentCompleted(supabase: any, resource: any) {
     .upsert({
       user_id: user.id,
       status: 'active',
-      plan: 'pro',
-      current_period_end: expiresAt.toISOString(),
+      paypal_subscription_id: null,
+      expires_at: expiresAt.toISOString(),
       updated_at: new Date().toISOString()
     }, {
       onConflict: 'user_id'
