@@ -92,7 +92,8 @@ object SupabaseClient {
     }
 
     /**
-     * Sign in with Google OAuth.
+     * Sign in with Google OAuth (browser-based flow).
+     * Returns the OAuth URL to open in browser.
      */
     suspend fun signInWithGoogle(): Result<Unit> {
         return try {
@@ -101,6 +102,26 @@ object SupabaseClient {
         } catch (e: Exception) {
             Log.e(TAG, "Google sign in failed", e)
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Get the OAuth URL for a provider.
+     * Use this for browser-based OAuth flow.
+     */
+    suspend fun getGoogleOAuthUrl(redirectUrl: String): String {
+        return try {
+            // Build OAuth URL manually for PKCE flow
+            val baseUrl = "${SUPABASE_URL}/auth/v1/authorize"
+            val params = buildString {
+                append("provider=google")
+                append("&redirect_to=${Uri.encode(redirectUrl)}")
+                append("&flowType=pkce")
+            }
+            "$baseUrl?$params"
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to build OAuth URL", e)
+            throw e
         }
     }
 

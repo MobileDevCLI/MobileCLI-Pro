@@ -189,18 +189,39 @@ class LoginActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                // Start Google OAuth flow
-                // Supabase Auth is configured with scheme="com.termux" and host="login-callback"
-                // so it will automatically use the correct redirect URL
-                SupabaseClient.auth.signInWith(Google)
+                // Use browser-based OAuth flow (works on all Android versions)
+                // The Credential Manager approach crashes on some devices
+                val redirectUrl = "com.termux://login-callback"
 
-                Log.i(TAG, "Google login initiated")
-                // OAuth will redirect back to app via deep link
+                // Get the OAuth URL from Supabase
+                val url = SupabaseClient.getGoogleOAuthUrl(redirectUrl)
+
+                Log.i(TAG, "Opening Google OAuth in browser: $url")
+
+                // Open in Chrome Custom Tab for better UX
+                runOnUiThread {
+                    try {
+                        val customTabsIntent = CustomTabsIntent.Builder()
+                            .setShowTitle(true)
+                            .build()
+                        customTabsIntent.launchUrl(this@LoginActivity, Uri.parse(url))
+                    } catch (e: Exception) {
+                        // Fallback to regular browser
+                        Log.w(TAG, "Custom tab failed, using browser", e)
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        startActivity(browserIntent)
+                    }
+                }
+
+                Log.i(TAG, "Google login initiated via browser")
+                // User will be redirected back via deep link
 
             } catch (e: Exception) {
                 Log.e(TAG, "Google login failed", e)
-                setLoading(false)
-                showError("Google sign-in failed. Please try again.")
+                runOnUiThread {
+                    setLoading(false)
+                    showError("Google sign-in failed: ${e.message}")
+                }
             }
         }
     }
