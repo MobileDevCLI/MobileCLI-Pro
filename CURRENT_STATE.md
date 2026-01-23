@@ -1,21 +1,19 @@
 # MobileCLI Pro - Current State (For AI Context Recovery)
 
 **Date:** January 23, 2026
-**Status:** TESTING - Browser OAuth implementation
-**Version:** 2.0.7-BROWSER-OAUTH
+**Status:** TESTING - Back button navigation fix
+**Version:** 2.0.8-BACKFIX
 
 ---
 
 ## LATEST APK
 
-**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.7-BROWSER-OAUTH.apk`
+**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.8-BACKFIX.apk`
 
 This APK includes all previous fixes plus:
-- **NEW: Browser-based Google OAuth with PKCE**
-- Fixed Google login not working (was failing silently with Credential Manager)
-- Now opens Chrome Custom Tab for Google authentication
-- Manual PKCE code verifier/challenge generation for reliable OAuth
-- Works on ALL devices (not dependent on Credential Manager support)
+- **Back button works** - Users can press back from paywall to return to login
+- Simpler navigation - no more trapped users on subscription screen
+- Browser-based Google OAuth (from v2.0.7)
 
 ---
 
@@ -23,7 +21,8 @@ This APK includes all previous fixes plus:
 
 | Version | File | Changes |
 |---------|------|---------|
-| **v2.0.7-BROWSER-OAUTH** | `MobileCLI-Pro-v2.0.7-BROWSER-OAUTH.apk` | **LATEST** - Browser-based Google OAuth with PKCE |
+| **v2.0.8-BACKFIX** | `MobileCLI-Pro-v2.0.8-BACKFIX.apk` | **LATEST** - Back button navigation fix |
+| v2.0.7-BROWSER-OAUTH | `MobileCLI-Pro-v2.0.7-BROWSER-OAUTH.apk` | Browser-based Google OAuth with PKCE |
 | v2.0.6-STABLE | `MobileCLI-Pro-v2.0.6-STABLE.apk` | Crash loop fix, stable |
 | v2.0.5-FIXED | `MobileCLI-Pro-v2.0.5-FIXED.apk` | LoginActivity onResume fix |
 | v2.0.4-GOOGLE-RESTORED | `MobileCLI-Pro-v2.0.4-GOOGLE-RESTORED.apk` | Restored SDK Google OAuth |
@@ -95,12 +94,11 @@ All APKs stored in `/sdcard/Download/` for easy revert.
 ## GIT HISTORY (Latest)
 
 ```
+cfd014e Allow back button navigation from PaywallActivity (v2.0.8)
 d5e17bd Implement browser-based Google OAuth with PKCE (v2.0.7-BROWSER-OAUTH)
 c7ff93e Fix crash loops in LoginActivity and PaywallActivity (v2.0.6-STABLE)
 f3a62e6 Update documentation for v2.0.3-OAUTH-FIX
 bd22955 Fix Google OAuth crash - use browser-based flow
-5400f26 Fix Google OAuth crash - use browser-based flow
-4ae869e Fix Restore Purchase button not responding
 ```
 
 ---
@@ -120,7 +118,8 @@ Vercel auto-deploys from `MobileDevCLI/website` repo.
 
 | File | Purpose |
 |------|---------|
-| `MobileCLI-Pro-v2.0.7-BROWSER-OAUTH.apk` | **LATEST - Use for testing** |
+| `MobileCLI-Pro-v2.0.8-BACKFIX.apk` | **LATEST - Use for testing** |
+| `MobileCLI-Pro-v2.0.7-BROWSER-OAUTH.apk` | Previous (browser OAuth) |
 | `MobileCLI-Pro-v2.0.6-STABLE.apk` | Previous (crash loop fix) |
 | `MobileCLI-Pro-v2.0.5-FIXED.apk` | Previous (LoginActivity fix) |
 | `MobileCLI-Pro-v2.0.4-GOOGLE-RESTORED.apk` | Previous (SDK OAuth) |
@@ -200,4 +199,4 @@ App queries database → shows Pro status if found
 
 ---
 
-*Last updated: January 23, 2026 - v2.0.7-BROWSER-OAUTH*
+*Last updated: January 23, 2026 - v2.0.8-BACKFIX*
