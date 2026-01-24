@@ -1,7 +1,7 @@
 # MobileCLI Pro - Authentication & Payment System Documentation
 
-**Version:** 1.0.0
-**Last Updated:** January 22, 2026
+**Version:** 2.0.0
+**Last Updated:** January 23, 2026
 **Author:** Claude Opus 4.5 + Human Developer
 
 ---
@@ -24,17 +24,17 @@
 
 ## System Overview
 
-MobileCLI Pro uses a **Supabase + Stripe** stack for authentication and payments:
+MobileCLI Pro uses a **Supabase + PayPal** stack for authentication and payments:
 
 - **Supabase**: User authentication, database, license storage
-- **Stripe**: Payment processing, subscription management
+- **PayPal**: Payment processing, subscription management
 - **Local Storage**: Encrypted license cache for offline use
 
 ### Key Principles
 
 1. **Login Required**: App won't work without authentication
 2. **Offline Support**: Once licensed, app works offline for 30 days
-3. **Subscription Model**: $15/month recurring via Stripe
+3. **Subscription Model**: $9.99/month recurring via PayPal
 4. **7-Day Trial**: Free users get 7 days before paywall
 
 ---
@@ -70,12 +70,13 @@ MobileCLI Pro uses a **Supabase + Stripe** stack for authentication and payments
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐              │
 │  │  Auth (GoTrue)│    │  PostgreSQL  │    │Edge Functions│              │
 │  │              │    │              │    │              │              │
-│  │ - Email/Pass │    │ - profiles   │    │ - create-    │              │
-│  │ - Google OAuth│    │ - subscript- │    │   checkout   │              │
-│  │ - Sessions   │    │   ions       │    │ - stripe-    │              │
-│  │              │    │ - app_       │    │   webhook    │              │
-│  │              │    │   licenses   │    │ - customer-  │              │
-│  │              │    │              │    │   portal     │              │
+│  │ - Email/Pass │    │ - profiles   │    │ - paypal-    │              │
+│  │ - Google OAuth│    │ - subscript- │    │   webhook    │              │
+│  │ - Sessions   │    │   ions       │    │              │              │
+│  │              │    │ - payment_   │    │              │              │
+│  │              │    │   history    │    │              │              │
+│  │              │    │ - webhook_   │    │              │              │
+│  │              │    │   logs       │    │              │              │
 │  └──────────────┘    └──────────────┘    └──────┬───────┘              │
 │                                                  │                       │
 └──────────────────────────────────────────────────┼───────────────────────┘
@@ -83,16 +84,17 @@ MobileCLI Pro uses a **Supabase + Stripe** stack for authentication and payments
                                                    │ HTTPS (Webhooks)
                                                    ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                            STRIPE                                        │
+│                            PAYPAL                                        │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐              │
 │  │   Checkout   │    │ Subscriptions│    │   Webhooks   │              │
 │  │              │    │              │    │              │              │
-│  │ - Hosted page│    │ - $15/month  │    │ - payment    │              │
-│  │ - Card input │    │ - Recurring  │    │   succeeded  │              │
-│  │ - PayPal     │    │ - Cancel     │    │ - subscription│             │
-│  │              │    │              │    │   updated    │              │
+│  │ - Hosted page│    │ - $9.99/month│    │ - BILLING.   │              │
+│  │ - PayPal     │    │ - Recurring  │    │   SUBSCRIPTION│             │
+│  │   account    │    │ - Cancel     │    │   .*         │              │
+│  │ - Card       │    │   anytime    │    │ - PAYMENT.   │              │
+│  │              │    │              │    │   SALE.*     │              │
 │  └──────────────┘    └──────────────┘    └──────────────┘              │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -106,9 +108,9 @@ MobileCLI Pro uses a **Supabase + Stripe** stack for authentication and payments
 |-----------|------------|---------|
 | **Auth** | Supabase GoTrue | Email/password + OAuth |
 | **Database** | Supabase PostgreSQL | User data, licenses, subscriptions |
-| **Edge Functions** | Supabase Deno Functions | Stripe integration |
-| **Payments** | Stripe Checkout | Secure payment processing |
-| **Subscriptions** | Stripe Billing | Recurring payments |
+| **Edge Functions** | Supabase Deno Functions | PayPal webhook handler |
+| **Payments** | PayPal Subscriptions | Secure payment processing |
+| **Subscriptions** | PayPal Billing | Recurring payments |
 | **Local Storage** | EncryptedSharedPreferences | Secure license cache |
 | **HTTP Client** | Ktor (Android) | API calls |
 
@@ -117,6 +119,12 @@ MobileCLI Pro uses a **Supabase + Stripe** stack for authentication and payments
 - **Project URL**: `https://mwxlguqukyfberyhtkmg.supabase.co`
 - **Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13eGxndXF1a3lmYmVyeWh0a21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0OTg5ODgsImV4cCI6MjA4MzA3NDk4OH0.VdpU9WzYpTyLeVX9RaXKBP3dNNNf0t9YkQfVf7x_TA8`
 - **Dashboard**: https://supabase.com/dashboard/project/mwxlguqukyfberyhtkmg
+
+### PayPal Configuration
+
+- **Plan ID**: `P-3RH33892X5467024SNFZON2Y`
+- **Webhook URL**: `https://mwxlguqukyfberyhtkmg.supabase.co/functions/v1/paypal-webhook`
+- **Price**: $9.99/month recurring
 
 ---
 
@@ -144,19 +152,17 @@ MobileCLI Pro uses a **Supabase + Stripe** stack for authentication and payments
 
 3. CHECK SUPABASE AUTH
    └─▶ SupabaseClient.isLoggedIn()
-       ├─▶ TRUE: Try to register device
-       │   └─▶ LicenseManager.registerDevice()
-       │       ├─▶ Pro tier: PROCEED TO APP
-       │       └─▶ Free tier: GO TO PAYWALL
+       ├─▶ TRUE: Check subscription status
+       │   └─▶ Query subscriptions table
+       │       ├─▶ Active subscription: PROCEED TO APP
+       │       └─▶ No subscription: GO TO PAYWALL
        │
        └─▶ FALSE: GO TO LOGIN
 
 4. LOGIN FLOW (LoginActivity)
    └─▶ User enters email + password
        └─▶ SupabaseClient.auth.signInWith(Email)
-           ├─▶ SUCCESS: Register device, check tier
-           │   ├─▶ Pro: PROCEED TO APP
-           │   └─▶ Free: GO TO PAYWALL
+           ├─▶ SUCCESS: Check subscription, route accordingly
            └─▶ FAILURE: Show error message
 
 5. SIGNUP FLOW (LoginActivity)
@@ -166,9 +172,9 @@ MobileCLI Pro uses a **Supabase + Stripe** stack for authentication and payments
                └─▶ User confirms email, then logs in
 
 6. PAYWALL FLOW (PaywallActivity)
-   ├─▶ START TRIAL: Use 7-day free tier, PROCEED TO APP
-   └─▶ SUBSCRIBE: Open Stripe Checkout in browser
-       └─▶ User pays → Stripe webhook → Supabase updates subscription
+   ├─▶ START TRIAL: Create trial subscription, PROCEED TO APP
+   └─▶ SUBSCRIBE: Open PayPal subscription page
+       └─▶ User pays → PayPal webhook → Supabase updates subscription
            └─▶ User returns to app → verifyLicense() → PROCEED TO APP
 ```
 
@@ -179,9 +185,8 @@ MobileCLI Pro uses a **Supabase + Stripe** stack for authentication and payments
 | App starts | `SplashActivity.kt` | `checkAuthStatus()` |
 | User logs in | `LoginActivity.kt` | `login()` |
 | User signs up | `LoginActivity.kt` | `signup()` |
-| Device registered | `LicenseManager.kt` | `registerDevice()` |
 | License verified | `LicenseManager.kt` | `verifyLicense()` |
-| Checkout opened | `PaywallActivity.kt` | `openCheckout()` |
+| Checkout opened | `PaywallActivity.kt` | `openPayPalSubscription()` |
 
 ---
 
@@ -195,44 +200,23 @@ Licenses are stored in **EncryptedSharedPreferences** (AES-256-GCM encryption):
 Location: /data/data/com.termux/shared_prefs/mobilecli_license.xml (encrypted)
 
 Keys stored:
-- license_key: "MCLI-XXXX-XXXX-XXXX-XXXX"
 - user_id: UUID from Supabase
 - user_email: User's email
-- tier: "free" | "pro" | "team"
+- status: "trial" | "active" | "expired" | "cancelled"
 - expires_at: Unix timestamp (milliseconds)
 - last_verified: Unix timestamp (milliseconds)
-- device_id: Android device ID
+- paypal_subscription_id: PayPal subscription ID (if subscribed)
 ```
-
-### License Key Format
-
-```
-MCLI-XXXX-XXXX-XXXX-XXXX
-
-Example: MCLI-A3F2-9B4C-E7D1-8F6A
-```
-
-Generated by Supabase function `generate_license_key()`.
 
 ### Verification Schedule
 
 | Scenario | Action |
 |----------|--------|
-| First login | Call `register_device()` → Get license |
-| App launch (license valid, <30 days) | Use local license, no network |
-| App launch (license valid, >30 days) | Call `verify_license()` to refresh |
-| App launch (license expired) | Require re-login or show paywall |
-| Network unavailable | Use local license if not expired |
-
-### Device Registration
-
-When a user logs in on a new device:
-
-1. App calls Supabase RPC `register_device(user_id, device_id, device_name)`
-2. Supabase checks subscription status
-3. If subscribed: Creates license tied to subscription end date
-4. If free: Creates license with 7-day expiry (trial)
-5. License key returned to app and stored locally
+| First login | Query `subscriptions` table |
+| App launch (subscription valid, <30 days) | Use local cache, no network |
+| App launch (subscription valid, >30 days) | Re-verify with Supabase |
+| App launch (subscription expired) | Show paywall |
+| Network unavailable | Use local cache if not expired |
 
 ---
 
@@ -241,57 +225,52 @@ When a user logs in on a new device:
 ### Subscription Flow
 
 ```
-1. User taps "Subscribe - $15/month" in PaywallActivity
+1. User taps "Subscribe - $9.99/month" in PaywallActivity
 
-2. App opens browser to:
-   https://mobilecli.com/pricing.html?email=user@example.com&user_id=xxx
+2. App opens PayPal subscription URL in browser:
+   https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=P-3RH33892X5467024SNFZON2Y&custom_id=USER_UUID
 
-3. Website creates Stripe Checkout session via Edge Function:
-   POST /functions/v1/create-checkout
-   Body: { priceId: "price_xxx", successUrl: "...", cancelUrl: "..." }
+3. PayPal page loads
+   - User logs into PayPal (or uses card)
+   - User approves subscription
+   - PayPal redirects to success URL
 
-4. Stripe Checkout page loads (hosted by Stripe)
-   - User enters card details
-   - User clicks "Subscribe"
+4. PayPal sends webhook to:
+   https://mwxlguqukyfberyhtkmg.supabase.co/functions/v1/paypal-webhook
 
-5. Stripe processes payment
+5. Edge Function receives webhook:
+   - Event: BILLING.SUBSCRIPTION.ACTIVATED
+   - Finds user by custom_id (Supabase user_id)
+   - Updates `subscriptions` table
+   - Sets status = "active", expires_at = +30 days
 
-6. Stripe sends webhook to:
-   https://mwxlguqukyfberyhtkmg.supabase.co/functions/v1/stripe-webhook
+6. User returns to app
 
-7. Edge Function receives webhook:
-   - Event: checkout.session.completed
-   - Updates `subscriptions` table in Supabase
-   - Sets tier = "pro", status = "active"
-   - Sets period_end to subscription end date
-
-8. User returns to app
-
-9. App calls verifyLicense()
-   - Supabase returns updated tier = "pro"
-   - App stores new license locally
-   - App proceeds to SetupWizard/MainActivity
+7. App queries subscription status
+   - Supabase returns status = "active"
+   - App stores locally and proceeds
 ```
 
-### Stripe Webhook Events Handled
+### PayPal Webhook Events Handled
 
 | Event | Action |
 |-------|--------|
-| `checkout.session.completed` | Create/update subscription, set tier |
-| `customer.subscription.updated` | Update tier, status, period dates |
-| `customer.subscription.deleted` | Set status = cancelled, expire licenses |
-| `invoice.payment_failed` | Set status = past_due |
-| `invoice.payment_succeeded` | Set status = active |
+| `BILLING.SUBSCRIPTION.ACTIVATED` | Set status = active, record payment |
+| `BILLING.SUBSCRIPTION.CANCELLED` | Set status = cancelled |
+| `BILLING.SUBSCRIPTION.SUSPENDED` | Set status = suspended |
+| `BILLING.SUBSCRIPTION.EXPIRED` | Set status = expired |
+| `BILLING.SUBSCRIPTION.RE-ACTIVATED` | Set status = active |
+| `BILLING.SUBSCRIPTION.PAYMENT.FAILED` | Record failed payment |
+| `PAYMENT.SALE.COMPLETED` | Record payment, extend subscription |
 
-### Stripe Configuration
+### User Matching Logic
 
-| Setting | Value |
-|---------|-------|
-| Product | MobileCLI Pro |
-| Price | $15/month recurring |
-| Price ID | `price_xxx` (get from Stripe Dashboard) |
-| Webhook URL | `https://mwxlguqukyfberyhtkmg.supabase.co/functions/v1/stripe-webhook` |
-| Webhook Events | checkout.session.completed, customer.subscription.*, invoice.* |
+The webhook matches users in this order:
+
+1. **custom_id** - The Supabase user_id passed from the app (most reliable)
+2. **subscriber.email_address** - PayPal email (fallback if custom_id missing)
+
+If matching fails (e.g., PayPal email differs from app email), the webhook logs `user_not_found` and admin must manually activate.
 
 ---
 
@@ -299,65 +278,61 @@ When a user logs in on a new device:
 
 ### Tables
 
-#### `profiles`
-```sql
-CREATE TABLE profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id),
-    email TEXT,
-    display_name TEXT,
-    avatar_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-```
-
 #### `subscriptions`
 ```sql
 CREATE TABLE subscriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES auth.users(id),
-    stripe_customer_id TEXT,
-    stripe_subscription_id TEXT UNIQUE,
-    tier TEXT DEFAULT 'free' CHECK (tier IN ('free', 'pro', 'team')),
-    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'past_due', 'trialing', 'expired')),
-    current_period_start TIMESTAMP WITH TIME ZONE,
-    current_period_end TIMESTAMP WITH TIME ZONE,
-    cancel_at_period_end BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    user_id UUID UNIQUE REFERENCES auth.users(id),
+    status TEXT DEFAULT 'trial' CHECK (status IN ('trial', 'active', 'cancelled', 'suspended', 'expired')),
+    paypal_subscription_id TEXT,
+    paypal_payer_id TEXT,
+    expires_at TIMESTAMPTZ,
+    trial_started_at TIMESTAMPTZ,
+    last_payment_at TIMESTAMPTZ,
+    payment_failed_at TIMESTAMPTZ,
+    cancelled_at TIMESTAMPTZ,
+    cancel_reason TEXT,
+    admin_notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
-#### `app_licenses`
+#### `payment_history`
 ```sql
-CREATE TABLE app_licenses (
+CREATE TABLE payment_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id),
-    device_id TEXT NOT NULL,
-    device_name TEXT,
-    license_key TEXT UNIQUE NOT NULL,
-    is_active BOOLEAN DEFAULT true,
-    activated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    last_verified_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    expires_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    amount DECIMAL(10,2),
+    currency TEXT DEFAULT 'USD',
+    payment_type TEXT,  -- 'subscription_initial', 'subscription_renewal', 'refund'
+    provider TEXT DEFAULT 'paypal',
+    paypal_transaction_id TEXT,
+    paypal_subscription_id TEXT,
+    status TEXT,  -- 'completed', 'pending', 'failed', 'refunded'
+    description TEXT,
+    metadata JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
-### Database Functions (RPCs)
-
-#### `register_device(p_user_id, p_device_id, p_device_name)`
-- Creates or returns existing license for device
-- Returns: `{ success, license_key, tier, message }`
-
-#### `verify_license(p_license_key, p_device_id)`
-- Validates license and returns current status
-- Updates `last_verified_at`
-- Returns: `{ valid, user_id, tier, expires_at, subscription_status }`
-
-#### `generate_license_key()`
-- Generates unique `MCLI-XXXX-XXXX-XXXX-XXXX` format key
-- Returns: TEXT
+#### `webhook_logs`
+```sql
+CREATE TABLE webhook_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_type TEXT,
+    event_id TEXT,
+    provider TEXT DEFAULT 'paypal',
+    payload JSONB,
+    user_id UUID,
+    user_email TEXT,
+    processed BOOLEAN DEFAULT false,
+    processing_result TEXT,
+    error_message TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    processed_at TIMESTAMPTZ
+);
+```
 
 ---
 
@@ -367,51 +342,14 @@ CREATE TABLE app_licenses (
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/functions/v1/create-checkout` | POST | Create Stripe Checkout session |
-| `/functions/v1/stripe-webhook` | POST | Handle Stripe webhooks |
-| `/functions/v1/customer-portal` | POST | Get Stripe Customer Portal URL |
+| `/functions/v1/paypal-webhook` | POST | Handle PayPal webhooks |
 
-### Request/Response Examples
+### Supabase Direct Queries (via SDK)
 
-#### Create Checkout
-```
-POST /functions/v1/create-checkout
-Authorization: Bearer <supabase_jwt>
-Content-Type: application/json
-
-{
-  "priceId": "price_xxxxx",
-  "successUrl": "https://mobilecli.com/dashboard.html?payment=success",
-  "cancelUrl": "https://mobilecli.com/pricing.html?payment=cancelled"
-}
-
-Response:
-{
-  "sessionId": "cs_xxxxx",
-  "url": "https://checkout.stripe.com/pay/cs_xxxxx"
-}
-```
-
-#### Supabase RPC - Register Device
-```
-POST /rest/v1/rpc/register_device
-Authorization: Bearer <supabase_jwt>
-Content-Type: application/json
-
-{
-  "p_user_id": "uuid-xxxx",
-  "p_device_id": "android_device_id",
-  "p_device_name": "Samsung Galaxy S24"
-}
-
-Response:
-{
-  "success": true,
-  "license_key": "MCLI-A3F2-9B4C-E7D1-8F6A",
-  "tier": "pro",
-  "message": "Device registered successfully"
-}
-```
+| Query | Purpose |
+|-------|---------|
+| `SELECT * FROM subscriptions WHERE user_id = ?` | Check subscription status |
+| `INSERT INTO subscriptions ...` | Create trial subscription |
 
 ---
 
@@ -422,7 +360,7 @@ Response:
 | File | Purpose |
 |------|---------|
 | `auth/SplashActivity.kt` | Entry point, checks auth status on launch |
-| `auth/LoginActivity.kt` | Email/password and Google OAuth login |
+| `auth/LoginActivity.kt` | Email/password login |
 | `auth/PaywallActivity.kt` | Subscription options and trial |
 | `auth/LicenseManager.kt` | Local license storage and verification |
 | `auth/SupabaseClient.kt` | Supabase SDK configuration and helpers |
@@ -430,19 +368,12 @@ Response:
 | `res/layout/activity_login.xml` | Login form UI |
 | `res/layout/activity_paywall.xml` | Subscription UI |
 
-### Website Files (mobilecli.com)
+### Supabase Files
 
 | File | Purpose |
 |------|---------|
-| `js/supabase-config.js` | Supabase client initialization |
-| `js/stripe-config.js` | Stripe client + payment helpers |
-| `login.html` | Web login page |
-| `dashboard.html` | User dashboard after login |
-| `pricing.html` | Subscription pricing page |
-| `supabase/functions/create-checkout/index.ts` | Stripe Checkout Edge Function |
-| `supabase/functions/stripe-webhook/index.ts` | Stripe Webhook handler |
-| `supabase/functions/customer-portal/index.ts` | Stripe Portal Edge Function |
-| `supabase-setup.sql` | Database schema + functions |
+| `supabase/functions/paypal-webhook/index.ts` | PayPal webhook handler |
+| `supabase/migrations/002_professional_subscription.sql` | Database schema |
 
 ---
 
@@ -455,11 +386,11 @@ Response:
 2. Check Supabase Dashboard → Authentication → Users
 3. Try resetting password
 
-#### License not found after payment
-1. Check Stripe Dashboard → Events for webhook delivery
-2. Check Supabase Edge Function logs
-3. Verify `stripe_webhook` function is deployed
-4. Check `subscriptions` table for user's record
+#### Subscription not found after payment
+1. Check `webhook_logs` table for the event
+2. Check `processing_result` column
+3. If `user_not_found`: PayPal email differs from app email - manually activate
+4. If no webhook: Check PayPal dashboard for delivery status
 
 #### App stuck on "Verifying..."
 1. Check internet connection
@@ -467,16 +398,10 @@ Response:
 3. Clear app data and re-login
 4. Check if Supabase anon key is correct
 
-#### Subscription not recognized
-1. Check `subscriptions` table: `SELECT * FROM subscriptions WHERE user_id = 'xxx'`
-2. Check `tier` column is "pro" not "free"
-3. Check `status` column is "active"
-4. Verify Stripe webhook is hitting Supabase
-
-#### License expired but user is subscribed
-1. The `expires_at` in `app_licenses` should be updated by webhook
-2. Check if webhook updated the license: `SELECT * FROM app_licenses WHERE user_id = 'xxx'`
-3. User can "Restore Purchase" in paywall to re-verify
+#### Trial expired but user wants to subscribe
+1. User opens paywall
+2. User taps Subscribe
+3. After payment, webhook updates status to "active"
 
 ### Debug Queries
 
@@ -487,27 +412,15 @@ SELECT * FROM auth.users WHERE email = 'user@example.com';
 -- Check user's subscription
 SELECT * FROM subscriptions WHERE user_id = 'uuid-here';
 
--- Check user's licenses
-SELECT * FROM app_licenses WHERE user_id = 'uuid-here';
+-- Check webhook events for user
+SELECT * FROM webhook_logs
+WHERE user_email ILIKE '%user@example.com%'
+ORDER BY created_at DESC;
 
--- Check recent webhook events (if logging enabled)
-SELECT * FROM usage_events
-WHERE event_type LIKE 'stripe%'
-ORDER BY created_at DESC LIMIT 10;
+-- Check recent payments
+SELECT * FROM payment_history
+ORDER BY created_at DESC LIMIT 20;
 ```
-
-### Stripe Webhook Testing
-
-1. Install Stripe CLI: `brew install stripe/stripe-cli/stripe`
-2. Login: `stripe login`
-3. Forward webhooks locally:
-   ```
-   stripe listen --forward-to https://mwxlguqukyfberyhtkmg.supabase.co/functions/v1/stripe-webhook
-   ```
-4. Trigger test events:
-   ```
-   stripe trigger checkout.session.completed
-   ```
 
 ---
 
@@ -517,27 +430,26 @@ ORDER BY created_at DESC LIMIT 10;
 
 - Supabase URL (public)
 - Supabase Anon Key (public, protected by RLS)
-- Stripe Publishable Key (public)
+- PayPal Plan ID (public)
 
 ### What Must Stay Secret
 
-- Supabase Service Role Key (server only)
-- Stripe Secret Key (server only)
-- Stripe Webhook Secret (server only)
+- Supabase Service Role Key (server only, in Edge Functions)
+- PayPal Client Secret (if using API directly)
 
 ### Row Level Security (RLS)
 
 All tables have RLS enabled:
-- Users can only read their own data
+- Users can only read their own subscription
+- Users can create their own trial subscription
 - Only service role can update subscriptions (via webhooks)
-- Licenses can only be created for authenticated users
+- Webhook logs are service-role only
 
-### License Security
+### Local Security
 
-- Stored in Android EncryptedSharedPreferences (AES-256-GCM)
-- Tied to device ID (can't copy license to another device)
-- Verified server-side on registration
-- Expires and requires re-verification
+- License cached in Android EncryptedSharedPreferences (AES-256-GCM)
+- Expires and requires re-verification every 30 days
+- No sensitive keys stored on device
 
 ---
 
@@ -545,16 +457,8 @@ All tables have RLS enabled:
 
 | Date | Version | Changes |
 |------|---------|---------|
-| 2026-01-22 | 1.0.0 | Initial documentation |
-
----
-
-## Contact
-
-For issues with:
-- **App/Android**: Check this documentation first, then debug with logs
-- **Supabase**: Dashboard → Logs, or check Edge Function logs
-- **Stripe**: Dashboard → Developers → Events → Webhooks
+| 2026-01-22 | 1.0.0 | Initial documentation (Stripe) |
+| 2026-01-23 | 2.0.0 | Updated for PayPal integration |
 
 ---
 
