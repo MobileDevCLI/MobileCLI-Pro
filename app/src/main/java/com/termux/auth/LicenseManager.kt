@@ -246,6 +246,20 @@ class LicenseManager(private val context: Context) {
     }
 
     /**
+     * Force a fresh server check, bypassing all cache.
+     * Use this after payment or when "Restore Purchase" is clicked.
+     */
+    suspend fun forceServerCheck(): Result<SubscriptionStatus> = withContext(Dispatchers.IO) {
+        // Clear all cached data first
+        clearCache()
+
+        Log.i(TAG, "Force server check - cache cleared, checking subscription...")
+
+        // Now check subscription fresh from server
+        checkSubscription()
+    }
+
+    /**
      * For backward compatibility with existing code.
      */
     fun hasValidLocalLicense(): Boolean = hasValidAccess()
@@ -264,6 +278,24 @@ class LicenseManager(private val context: Context) {
 
     suspend fun verifyLicense(): Result<LicenseInfo> {
         val result = checkSubscription()
+        return result.map { status ->
+            LicenseInfo(
+                licenseKey = "",
+                userId = status.userId,
+                userEmail = SupabaseClient.getCurrentUserEmail() ?: "",
+                tier = if (status.status == "active") "pro" else "free",
+                expiresAt = status.expiresAt,
+                lastVerified = status.lastVerified
+            )
+        }
+    }
+
+    /**
+     * Force verify license from server, bypassing cache.
+     * Use this for "Restore Purchase" and post-payment checks.
+     */
+    suspend fun forceVerifyLicense(): Result<LicenseInfo> {
+        val result = forceServerCheck()
         return result.map { status ->
             LicenseInfo(
                 licenseKey = "",

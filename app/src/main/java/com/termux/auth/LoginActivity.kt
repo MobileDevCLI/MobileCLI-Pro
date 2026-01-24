@@ -262,31 +262,37 @@ class LoginActivity : AppCompatActivity() {
 
     /**
      * Called after successful authentication.
-     * Registers device and gets license before proceeding.
+     * Forces a fresh server check for subscription status.
      */
     private suspend fun onLoginSuccess() {
         try {
-            // Register device and get license
-            val result = licenseManager.registerDevice()
+            Log.i(TAG, "Login successful, forcing fresh subscription check from server...")
+
+            // Force fresh check from server - bypass any cached data
+            // This ensures we get the latest subscription status after login
+            val result = licenseManager.forceVerifyLicense()
 
             runOnUiThread {
                 setLoading(false)
 
                 if (result.isSuccess) {
                     val license = result.getOrNull()!!
-                    Log.i(TAG, "Device registered, license tier: ${license.tier}")
+                    Log.i(TAG, "Fresh server check complete, license tier: ${license.tier}, isPro: ${license.isPro()}")
 
                     // Proceed based on license
                     if (license.isPro()) {
                         // Pro user - go directly to app
+                        Log.i(TAG, "User has Pro access, proceeding to app")
                         proceedToApp()
                     } else {
                         // Free/trial user - go to paywall
+                        Log.i(TAG, "User does not have Pro access, going to paywall")
                         goToPaywall()
                     }
                 } else {
-                    // Registration failed - still let them proceed but with limited access
-                    Log.w(TAG, "Device registration failed: ${result.exceptionOrNull()?.message}")
+                    // Server check failed - go to paywall to handle
+                    val error = result.exceptionOrNull()?.message ?: "Unknown error"
+                    Log.w(TAG, "Subscription check failed: $error")
                     goToPaywall()
                 }
             }

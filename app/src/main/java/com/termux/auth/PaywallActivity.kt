@@ -38,6 +38,10 @@ class PaywallActivity : AppCompatActivity() {
         private const val PAYPAL_PLAN_ID = "P-3RH33892X5467024SNFZON2Y"
         private const val PAYPAL_SUBSCRIBE_URL = "https://www.paypal.com/webapps/billing/plans/subscribe?plan_id=$PAYPAL_PLAN_ID"
 
+        // Post-payment polling configuration
+        private const val POLL_INTERVAL_MS = 3000L  // Check every 3 seconds
+        private const val MAX_POLL_TIME_MS = 30000L // Give up after 30 seconds
+
         fun start(context: Context) {
             val intent = Intent(context, PaywallActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -46,6 +50,7 @@ class PaywallActivity : AppCompatActivity() {
     }
 
     private lateinit var licenseManager: LicenseManager
+    private var isPolling = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,34 +78,102 @@ class PaywallActivity : AppCompatActivity() {
 
             if (isPaymentSuccess) {
                 Log.i(TAG, "Payment success deep link received: $uri")
-                // Show loading and verify subscription
-                findViewById<ProgressBar>(R.id.progress_bar).visibility = View.VISIBLE
-
-                lifecycleScope.launch {
-                    // Give webhook time to process
-                    delay(2000)
-                    verifyAndProceed()
-                }
+                startPaymentPolling()
             }
         }
     }
 
-    private suspend fun verifyAndProceed() {
-        val result = licenseManager.verifyLicense()
+    /**
+     * Start polling for subscription activation after payment.
+     * PayPal webhook may take a few seconds to process.
+     */
+    private fun startPaymentPolling() {
+        if (isPolling) return
+        isPolling = true
 
-        findViewById<ProgressBar>(R.id.progress_bar).visibility = View.GONE
+        Log.i(TAG, "Starting payment verification polling...")
 
-        if (result.isSuccess) {
-            val license = result.getOrNull()!!
-            if (license.isPro()) {
-                Toast.makeText(this, "Payment successful! Welcome to Pro!", Toast.LENGTH_SHORT).show()
-                proceedToApp()
-            } else {
-                // Webhook might not have processed yet
-                Toast.makeText(this, "Processing payment... Please wait a moment and try 'Restore Purchase'", Toast.LENGTH_LONG).show()
+        // Show processing state
+        showProcessingState("Processing payment...")
+
+        lifecycleScope.launch {
+            val startTime = System.currentTimeMillis()
+            var attempts = 0
+
+            while (isPolling && (System.currentTimeMillis() - startTime) < MAX_POLL_TIME_MS) {
+                attempts++
+                Log.i(TAG, "Payment poll attempt $attempts")
+
+                updateStatusMessage("Verifying payment... (attempt $attempts)")
+
+                // Force fresh check from server
+                val result = licenseManager.forceVerifyLicense()
+
+                if (result.isSuccess) {
+                    val license = result.getOrNull()!!
+                    Log.i(TAG, "Poll result: tier=${license.tier}, isPro=${license.isPro()}")
+
+                    if (license.isPro()) {
+                        isPolling = false
+                        hideProcessingState()
+                        Toast.makeText(this@PaywallActivity, "Payment successful! Welcome to Pro!", Toast.LENGTH_SHORT).show()
+                        proceedToApp()
+                        return@launch
+                    }
+                }
+
+                // Wait before next attempt
+                delay(POLL_INTERVAL_MS)
             }
-        } else {
-            Toast.makeText(this, "Could not verify subscription. Try 'Restore Purchase' in a moment.", Toast.LENGTH_LONG).show()
+
+            // Polling timed out - subscription not activated yet
+            isPolling = false
+            hideProcessingState()
+            showPaymentPendingMessage()
+        }
+    }
+
+    private fun showProcessingState(message: String) {
+        runOnUiThread {
+            findViewById<ProgressBar>(R.id.progress_bar).visibility = View.VISIBLE
+            findViewById<Button>(R.id.subscribe_button).isEnabled = false
+            findViewById<Button>(R.id.start_trial_button).isEnabled = false
+            findViewById<TextView>(R.id.restore_purchase).isEnabled = false
+
+            // Update status message if view exists
+            findViewById<TextView>(R.id.status_message)?.let {
+                it.text = message
+                it.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun updateStatusMessage(message: String) {
+        runOnUiThread {
+            findViewById<TextView>(R.id.status_message)?.text = message
+        }
+    }
+
+    private fun hideProcessingState() {
+        runOnUiThread {
+            findViewById<ProgressBar>(R.id.progress_bar).visibility = View.GONE
+            findViewById<Button>(R.id.subscribe_button).isEnabled = true
+            findViewById<Button>(R.id.start_trial_button).isEnabled = true
+            findViewById<TextView>(R.id.restore_purchase).isEnabled = true
+            findViewById<TextView>(R.id.status_message)?.visibility = View.GONE
+        }
+    }
+
+    private fun showPaymentPendingMessage() {
+        runOnUiThread {
+            Toast.makeText(
+                this,
+                "Payment received! It may take a moment to activate. Tap 'Check Again' to verify.",
+                Toast.LENGTH_LONG
+            ).show()
+
+            // Show the check again section
+            findViewById<LinearLayout>(R.id.check_again_section)?.visibility = View.VISIBLE
         }
     }
 
@@ -130,8 +203,50 @@ class PaywallActivity : AppCompatActivity() {
             restorePurchase()
         }
 
+        // Check Again button (in help section)
+        findViewById<Button>(R.id.check_again_button)?.setOnClickListener {
+            restorePurchase()
+        }
+
+        // Contact Support button
+        findViewById<Button>(R.id.contact_support_button)?.setOnClickListener {
+            openSupportEmail()
+        }
+
         // Update trial info based on license
         updateTrialInfo()
+    }
+
+    private fun openSupportEmail() {
+        val userId = SupabaseClient.getCurrentUserId() ?: "unknown"
+        val userEmail = SupabaseClient.getCurrentUserEmail() ?: "unknown"
+
+        val subject = "MobileCLI Pro - Subscription Issue"
+        val body = """
+            Hi MobileCLI Support,
+
+            I'm having trouble with my subscription.
+
+            User ID: $userId
+            Email: $userEmail
+            Issue: [Please describe your issue]
+
+            Thanks!
+        """.trimIndent()
+
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:")
+            putExtra(Intent.EXTRA_EMAIL, arrayOf("support@mobilecli.com"))
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, body)
+        }
+
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            // No email app - copy support email to clipboard
+            Toast.makeText(this, "Email support@mobilecli.com for help", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun updateTrialInfo() {
@@ -171,6 +286,10 @@ class PaywallActivity : AppCompatActivity() {
 
         Log.d(TAG, "Opening PayPal checkout with user_id: $userId")
 
+        // Mark that we're starting a payment flow
+        // This triggers verification polling when user returns
+        markPaymentStarted()
+
         // Open PayPal subscription page
         try {
             val customTabsIntent = CustomTabsIntent.Builder()
@@ -183,28 +302,29 @@ class PaywallActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // When they come back, we'll check subscription status
-        Toast.makeText(this, "Complete payment in PayPal, then return here", Toast.LENGTH_LONG).show()
+        // When they come back, we'll automatically check subscription status
+        Toast.makeText(this, "Complete payment in PayPal - we'll verify when you return", Toast.LENGTH_LONG).show()
     }
 
     private fun restorePurchase() {
         Log.i(TAG, "Restore purchase clicked")
 
         // Immediate feedback
-        Toast.makeText(this, "Checking subscription...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Checking subscription (force refresh)...", Toast.LENGTH_SHORT).show()
 
         val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
         progressBar.visibility = View.VISIBLE
 
-        // Disable button while checking
+        // Disable buttons while checking
         findViewById<TextView>(R.id.restore_purchase).isEnabled = false
+        findViewById<Button>(R.id.check_again_button)?.isEnabled = false
 
         lifecycleScope.launch {
             try {
-                Log.i(TAG, "Verifying license with server...")
+                Log.i(TAG, "Force verifying license with server (cache bypassed)...")
 
-                // Re-verify license from server
-                val result = licenseManager.verifyLicense()
+                // Force fresh check from server - bypass all cache
+                val result = licenseManager.forceVerifyLicense()
 
                 Log.i(TAG, "License result: ${result.isSuccess}, ${result.getOrNull()}")
 
@@ -220,18 +340,15 @@ class PaywallActivity : AppCompatActivity() {
                         ).show()
                         proceedToApp()
                     } else {
-                        Toast.makeText(
-                            this@PaywallActivity,
-                            "No active subscription found. Please subscribe or check your PayPal account.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        // Show help options
+                        showNoSubscriptionHelp()
                     }
                 } else {
                     val errorMsg = result.exceptionOrNull()?.message ?: "Unknown error"
                     Log.e(TAG, "Restore failed: $errorMsg")
                     Toast.makeText(
                         this@PaywallActivity,
-                        "Could not restore: $errorMsg",
+                        "Could not verify: $errorMsg",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -246,7 +363,21 @@ class PaywallActivity : AppCompatActivity() {
             } finally {
                 progressBar.visibility = View.GONE
                 findViewById<TextView>(R.id.restore_purchase).isEnabled = true
+                findViewById<Button>(R.id.check_again_button)?.isEnabled = true
             }
+        }
+    }
+
+    private fun showNoSubscriptionHelp() {
+        runOnUiThread {
+            // Show check again section with help info
+            findViewById<LinearLayout>(R.id.check_again_section)?.visibility = View.VISIBLE
+
+            Toast.makeText(
+                this,
+                "No active subscription found. If you just paid, try again in a moment or contact support.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -260,12 +391,36 @@ class PaywallActivity : AppCompatActivity() {
         finish()
     }
 
+    private var paymentInProgress = false
+
+    /**
+     * Mark that payment checkout has started.
+     * Used to trigger verification on resume.
+     */
+    private fun markPaymentStarted() {
+        paymentInProgress = true
+    }
+
     override fun onResume() {
         super.onResume()
-        // Don't auto-check on every resume - it causes loops and crashes
-        // User must explicitly click "Restore Purchase" to check subscription
-        // This prevents the crash loop when coming back from PayPal
         updateTrialInfo()
+
+        // If we were in a payment flow and returned, start polling
+        if (paymentInProgress && !isPolling) {
+            paymentInProgress = false
+            Log.i(TAG, "Returned from payment flow, starting verification polling")
+
+            // Brief delay to let PayPal's browser close
+            lifecycleScope.launch {
+                delay(500)
+                startPaymentPolling()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        isPolling = false  // Stop polling if activity is destroyed
     }
 
 }

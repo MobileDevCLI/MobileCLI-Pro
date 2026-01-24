@@ -64,24 +64,22 @@ class SplashActivity : AppCompatActivity() {
             Log.i(TAG, "No valid local license")
 
             if (SupabaseClient.isLoggedIn()) {
-                Log.i(TAG, "User is logged in, checking subscription")
-                // Try to get/refresh license
-                val result = licenseManager.registerDevice()
+                Log.i(TAG, "User is logged in, forcing fresh server check for subscription")
+                // Force fresh check from server - bypass any stale cache
+                val result = licenseManager.forceVerifyLicense()
                 if (result.isSuccess) {
                     val license = result.getOrNull()!!
-                    if (license.isPro() || license.tier == "free") {
-                        // Has some access (pro or trial)
-                        if (license.isPro()) {
-                            proceedToApp()
-                        } else {
-                            // Free tier - show paywall
-                            goToPaywall()
-                        }
+                    Log.i(TAG, "Server check result: tier=${license.tier}, isPro=${license.isPro()}")
+                    if (license.isPro()) {
+                        // Has Pro access - proceed to app
+                        proceedToApp()
                     } else {
+                        // No Pro access - show paywall (trial or expired)
                         goToPaywall()
                     }
                 } else {
-                    // Couldn't get license - show paywall
+                    // Server check failed - show paywall
+                    Log.w(TAG, "Server check failed: ${result.exceptionOrNull()?.message}")
                     goToPaywall()
                 }
             } else {

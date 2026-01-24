@@ -155,6 +155,18 @@
             android:focusable="true"
             android:background="?attr/selectableItemBackground" />
 
+        <!-- Status Message (shown during payment processing) -->
+        <TextView
+            android:id="@+id/status_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Processing..."
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_marginTop="8dp" />
+
         <!-- Progress Bar -->
         <ProgressBar
             android:id="@+id/progress_bar"
@@ -163,6 +175,56 @@
             android:visibility="gone"
             android:indeterminateTint="#6750A4"
             android:layout_marginTop="16dp" />
+
+        <!-- Check Again Section (shown after payment timeout) -->
+        <LinearLayout
+            android:id="@+id/check_again_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="#FFF3E0"
+            android:padding="16dp"
+            android:layout_marginTop="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Just completed payment?"
+                android:textSize="16sp"
+                android:textColor="#E65100"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PayPal payments can take a moment to process. Tap below to check again, or contact support if the issue persists."
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:layout_marginBottom="16dp" />
+
+            <Button
+                android:id="@+id/check_again_button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Check Again"
+                android:textSize="14sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#E65100"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/contact_support_button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Contact Support"
+                android:textSize="14sp"
+                android:textColor="#E65100"
+                android:backgroundTint="#FFFFFF"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
