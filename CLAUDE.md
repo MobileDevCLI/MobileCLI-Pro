@@ -412,6 +412,74 @@ nohup curl -L -o ~/file.zip "https://..." > ~/download.log 2>&1 &
 
 ---
 
+## ACCESSING USER'S SCREEN & FILES
+
+### Screenshots (Samsung Galaxy)
+Screenshots are saved to: `/sdcard/DCIM/Screenshots/`
+
+```bash
+# List recent screenshots
+ls -lt /sdcard/DCIM/Screenshots/ | head -5
+
+# View the most recent screenshot
+Read /sdcard/DCIM/Screenshots/$(ls -t /sdcard/DCIM/Screenshots/ | head -1)
+```
+
+### Screenshots (Other Android)
+Some phones save to: `/sdcard/Pictures/Screenshots/`
+
+```bash
+# Try both locations
+ls -lt /sdcard/DCIM/Screenshots/ 2>/dev/null | head -3
+ls -lt /sdcard/Pictures/Screenshots/ 2>/dev/null | head -3
+```
+
+### Storage Access Patterns
+
+| Method | Works? | Notes |
+|--------|--------|-------|
+| `/sdcard/DCIM/Screenshots/` | ✅ YES | Direct path - always works |
+| `/sdcard/Download/` | ✅ YES | User-accessible downloads |
+| `~/storage/dcim/` | ❌ MAYBE | Only if `termux-setup-storage` was run |
+| `find /sdcard -name "*.jpg"` | ❌ UNRELIABLE | Permission quirks |
+| `/tmp/anything` | ❌ NEVER | Permission denied on Android |
+
+### Clipboard Access
+```bash
+# Copy text to clipboard (user can paste anywhere)
+echo "text to copy" | termux-clipboard-set
+
+# Or copy file contents
+cat ~/myfile.txt | termux-clipboard-set
+
+# Read from clipboard
+termux-clipboard-get
+```
+
+### Creating Files for User
+```bash
+# Always save to /sdcard/Download/ for user access
+cp ~/myfile.txt /sdcard/Download/myfile.txt
+
+# Open a file with default app
+termux-open /sdcard/Download/myfile.txt
+```
+
+### Temp Files
+```bash
+# WRONG - permission denied
+echo "data" > /tmp/myfile
+
+# RIGHT - use home directory
+echo "data" > ~/tmp/myfile
+mkdir -p ~/tmp  # Create if doesn't exist
+
+# OR use $PREFIX/tmp
+echo "data" > $PREFIX/tmp/myfile
+```
+
+---
+
 ## YOU CAN:
 - Build Android apps from scratch and install them
 - Rebuild this very app (self-modification loop)
