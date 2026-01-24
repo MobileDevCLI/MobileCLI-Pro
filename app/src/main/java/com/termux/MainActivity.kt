@@ -470,6 +470,12 @@ class MainActivity : AppCompatActivity(), TerminalViewClient, TerminalSessionCli
             drawerLayout.closeDrawers()
         }
 
+        // Supabase CLI
+        findViewById<TextView>(R.id.nav_supabase)?.setOnClickListener {
+            installSupabaseCLI()
+            drawerLayout.closeDrawers()
+        }
+
         // AI Briefing - Fetches comprehensive documentation for AI assistants
         findViewById<TextView>(R.id.nav_ai_briefing)?.setOnClickListener {
             showAIBriefing()
@@ -975,6 +981,25 @@ class MainActivity : AppCompatActivity(), TerminalViewClient, TerminalSessionCli
                         val cmd = "pkg install -y gh git && gh auth login\n"
                         session?.write(cmd.toByteArray(), 0, cmd.length)
                         Toast.makeText(this@MainActivity, "Installing GitHub CLI in new tab...", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun installSupabaseCLI() {
+        AlertDialog.Builder(this)
+            .setTitle("Install Supabase CLI")
+            .setMessage("This opens a new terminal tab to install Supabase CLI.\n\nRequires Go + Supabase (~130MB download).\n\nComplete the login in browser, then switch back to your main tab.\n\nClaude can then use 'supabase' commands.")
+            .setPositiveButton("Install") { _, _ ->
+                createSession()
+                lifecycleScope.launch {
+                    delay(500)
+                    withContext(Dispatchers.Main) {
+                        val cmd = "echo 'Installing Supabase CLI...' && pkg install -y golang && go install github.com/supabase/cli@v1.200.0 && mv ~/go/bin/cli ~/go/bin/supabase 2>/dev/null; grep -q 'go/bin' ~/.bashrc || echo 'export PATH=\"\$HOME/go/bin:\$PATH\"' >> ~/.bashrc && export PATH=\"\$HOME/go/bin:\$PATH\" && echo '' && echo 'Supabase CLI installed! Starting login...' && echo '' && supabase login\n"
+                        session?.write(cmd.toByteArray(), 0, cmd.length)
+                        Toast.makeText(this@MainActivity, "Installing Supabase CLI in new tab...", Toast.LENGTH_LONG).show()
                     }
                 }
             }

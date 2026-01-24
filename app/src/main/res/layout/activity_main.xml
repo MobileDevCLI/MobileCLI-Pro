@@ -379,6 +379,18 @@
             android:paddingStart="8dp"
             android:background="?android:attr/selectableItemBackground" />
 
+        <!-- Supabase CLI -->
+        <TextView
+            android:id="@+id/nav_supabase"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:text="Supabase CLI"
+            android:textSize="16sp"
+            android:textColor="#ffffff"
+            android:paddingStart="8dp"
+            android:background="?android:attr/selectableItemBackground" />
+
         <!-- AI Briefing - Fetches comprehensive AI documentation -->
         <TextView
             android:id="@+id/nav_ai_briefing"
