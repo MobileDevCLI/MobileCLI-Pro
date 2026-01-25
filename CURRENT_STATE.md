@@ -1,12 +1,32 @@
 # MobileCLI Pro - Current State (For AI Context Recovery)
 
 **Date:** January 25, 2026
-**Status:** PayPal Archive Complete - Ready for Stripe Migration
-**Version:** 2.0.8-BACKFIX
+**Status:** Auth/Payment Flow Production Ready
+**Version:** 2.0.0-rc.2 (Build 14)
 
 ---
 
-## LATEST WORK: PayPal Documentation Archive
+## LATEST WORK: Auth/Payment Flow Fixes
+
+**Completed January 25, 2026**
+
+### Changes Made
+1. **Fixed support email** - Changed `support@mobilecli.com` to `mobiledevcli@gmail.com`
+2. **Added webhook logging** - All PayPal events logged to `webhook_logs` table
+3. **Added payment history** - All payments recorded to `payment_history` table
+4. **Processing tracking** - Webhook marks events as processed with result status
+
+### New Database Tables Required
+Run in Supabase SQL Editor:
+```sql
+CREATE TABLE IF NOT EXISTS webhook_logs (...);
+CREATE TABLE IF NOT EXISTS payment_history (...);
+```
+See full SQL in docs or commit message.
+
+---
+
+## PREVIOUS WORK: PayPal Documentation Archive
 
 **Completed January 25, 2026**
 
@@ -28,12 +48,12 @@ Created complete PayPal integration documentation in `docs/paypal/`:
 
 ## LATEST APK
 
-**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.8-BACKFIX.apk`
+**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.0-rc.2.apk`
 
 This APK includes all previous fixes plus:
-- **Back button works** - Users can press back from paywall to return to login
-- Simpler navigation - no more trapped users on subscription screen
-- Browser-based Google OAuth (from v2.0.7)
+- **Fixed support email** - Correct contact email for users
+- Browser-based Google OAuth
+- Back button navigation fix
 
 ---
 
@@ -41,7 +61,8 @@ This APK includes all previous fixes plus:
 
 | Version | File | Changes |
 |---------|------|---------|
-| **v2.0.8-BACKFIX** | `MobileCLI-Pro-v2.0.8-BACKFIX.apk` | **LATEST** - Back button navigation fix |
+| **v2.0.0-rc.2** | `MobileCLI-Pro-v2.0.0-rc.2.apk` | **LATEST** - Support email fix, webhook logging |
+| v2.0.8-BACKFIX | `MobileCLI-Pro-v2.0.8-BACKFIX.apk` | Back button navigation fix |
 | v2.0.7-BROWSER-OAUTH | `MobileCLI-Pro-v2.0.7-BROWSER-OAUTH.apk` | Browser-based Google OAuth with PKCE |
 | v2.0.6-STABLE | `MobileCLI-Pro-v2.0.6-STABLE.apk` | Crash loop fix, stable |
 | v2.0.5-FIXED | `MobileCLI-Pro-v2.0.5-FIXED.apk` | LoginActivity onResume fix |
@@ -200,4 +221,4 @@ User clicks "Restore Purchase" -> Pro access granted
 
 ---
 
-*Last updated: January 25, 2026 - PayPal Archive Complete*
+*Last updated: January 25, 2026 - Auth/Payment Flow Fixes (rc.2)*

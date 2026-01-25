@@ -49,10 +49,29 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    // Log webhook event to database for debugging
+    const { error: logError } = await supabase
+      .from("webhook_logs")
+      .insert({
+        event_type: eventType,
+        event_id: body.id,
+        provider: "paypal",
+        payload: body,
+        user_id: customId || null,
+        user_email: subscriberEmail || null,
+        processed: false
+      })
+
+    if (logError) {
+      console.error("Failed to log webhook:", logError.message)
+    }
+
     // Handle different PayPal events
     // IMPORTANT: Using UPSERT instead of UPDATE
     // Supabase .update() returns empty array (not error) when no row matches
     // UPSERT creates row if missing, updates if exists
+
+    let processingResult = "no_action"
 
     if (eventType === "BILLING.SUBSCRIPTION.ACTIVATED" && customId) {
       console.log("Activating subscription for user:", customId)
@@ -71,8 +90,10 @@ Deno.serve(async (req: Request) => {
 
       if (error) {
         console.error("Database error:", error.message)
+        processingResult = `error: ${error.message}`
       } else {
         console.log("Subscription activated successfully:", data)
+        processingResult = "subscription_activated"
       }
     }
 
@@ -91,8 +112,10 @@ Deno.serve(async (req: Request) => {
 
       if (error) {
         console.error("Database error:", error.message)
+        processingResult = `error: ${error.message}`
       } else {
         console.log("Subscription cancelled successfully")
+        processingResult = "subscription_cancelled"
       }
     }
 
@@ -111,6 +134,9 @@ Deno.serve(async (req: Request) => {
 
       if (error) {
         console.error("Database error:", error.message)
+        processingResult = `error: ${error.message}`
+      } else {
+        processingResult = "subscription_suspended"
       }
     }
 
@@ -129,6 +155,9 @@ Deno.serve(async (req: Request) => {
 
       if (error) {
         console.error("Database error:", error.message)
+        processingResult = `error: ${error.message}`
+      } else {
+        processingResult = "subscription_expired"
       }
     }
 
@@ -147,7 +176,43 @@ Deno.serve(async (req: Request) => {
 
       if (error) {
         console.error("Database error:", error.message)
+        processingResult = `error: ${error.message}`
+      } else {
+        processingResult = "payment_completed"
       }
+
+      // Record payment in payment_history for audit trail
+      const { error: historyError } = await supabase
+        .from("payment_history")
+        .insert({
+          user_id: customId,
+          amount: resource.amount?.total || 15.00,
+          currency: resource.amount?.currency || "USD",
+          payment_type: "subscription_renewal",
+          provider: "paypal",
+          paypal_transaction_id: resource.id,
+          paypal_subscription_id: resource.billing_agreement_id,
+          status: "completed",
+          description: "MobileCLI Pro subscription payment"
+        })
+
+      if (historyError) {
+        console.error("Failed to record payment history:", historyError.message)
+      } else {
+        console.log("Payment recorded in history")
+      }
+    }
+
+    // Update webhook log to mark as processed
+    if (body.id) {
+      await supabase
+        .from("webhook_logs")
+        .update({
+          processed: true,
+          processing_result: processingResult,
+          processed_at: new Date().toISOString()
+        })
+        .eq("event_id", body.id)
     }
 
     // Always return success to PayPal

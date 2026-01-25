@@ -2,10 +2,10 @@
 
 ## Current Version
 
-**Version:** 2.0.0-beta.34
-**Build:** 13
-**Release Date:** January 22, 2026
-**Status:** Beta (Fully Functional)
+**Version:** 2.0.0-rc.2
+**Build:** 14
+**Release Date:** January 25, 2026
+**Status:** Release Candidate (Production Ready)
 
 ---
 
@@ -38,13 +38,12 @@ MAJOR.MINOR.PATCH-STAGE.BUILD
 
 ---
 
-## Current Features (Build 13)
+## Current Features (Build 14)
 
 ### Authentication
 - [x] Email + Password login
 - [x] Email + Password signup
 - [x] Google OAuth login
-- [x] Skip login (demo mode)
 - [x] Session persistence
 - [x] Logout functionality
 
@@ -52,7 +51,9 @@ MAJOR.MINOR.PATCH-STAGE.BUILD
 - [x] PayPal subscription ($15/month)
 - [x] PayPal Business account integration
 - [x] 7-day free trial
-- [ ] Automatic license activation (webhook pending)
+- [x] Automatic license activation via webhook
+- [x] Webhook logging for debugging
+- [x] Payment history recording
 - [ ] Stripe alternative (future)
 
 ### Infrastructure
@@ -65,8 +66,8 @@ MAJOR.MINOR.PATCH-STAGE.BUILD
 
 ## Download Links
 
-### Latest Stable (Build 13)
-https://github.com/MobileDevCLI/MobileCLI-Pro/releases/tag/v2.0.0-beta.34-build13
+### Latest Stable (Build 14)
+https://github.com/MobileDevCLI/MobileCLI-Pro/releases/tag/v2.0.0-rc.2
 
 ### All Releases
 https://github.com/MobileDevCLI/MobileCLI-Pro/releases
@@ -112,7 +113,7 @@ https://github.com/MobileDevCLI/MobileCLI-Pro/releases
 
 ## File Checksums
 
-Build 13 APK checksums (verify download integrity):
+Build 14 APK checksums (verify download integrity):
 ```
 SHA256: (generate after download with: sha256sum app-debug.apk)
 MD5: (generate after download with: md5sum app-debug.apk)

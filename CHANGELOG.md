@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-rc.2] - 2026-01-25 (Release Candidate 2)
+
+### Fixed
+- Support email changed from `support@mobilecli.com` to `mobiledevcli@gmail.com`
+
+### Added
+- Webhook logging to `webhook_logs` table for debugging payment issues
+- Payment history recording to `payment_history` table for audit trail
+- Processing result tracking in webhook handler
+
+### Changed
+- PayPal webhook now logs all events before processing
+- Webhook marks events as processed with result status
+
+---
+
 ## [2.0.0-rc.1] - 2026-01-22 (Release Candidate)
 
 ### Security

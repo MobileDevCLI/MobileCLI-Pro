@@ -236,7 +236,7 @@ class PaywallActivity : AppCompatActivity() {
 
         val intent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("mailto:")
-            putExtra(Intent.EXTRA_EMAIL, arrayOf("support@mobilecli.com"))
+            putExtra(Intent.EXTRA_EMAIL, arrayOf("mobiledevcli@gmail.com"))
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, body)
         }
@@ -245,7 +245,7 @@ class PaywallActivity : AppCompatActivity() {
             startActivity(intent)
         } catch (e: Exception) {
             // No email app - copy support email to clipboard
-            Toast.makeText(this, "Email support@mobilecli.com for help", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Email mobiledevcli@gmail.com for help", Toast.LENGTH_LONG).show()
         }
     }
 
