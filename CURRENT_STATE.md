@@ -1,8 +1,28 @@
 # MobileCLI Pro - Current State (For AI Context Recovery)
 
-**Date:** January 23, 2026
-**Status:** TESTING - Back button navigation fix
+**Date:** January 25, 2026
+**Status:** PayPal Archive Complete - Ready for Stripe Migration
 **Version:** 2.0.8-BACKFIX
+
+---
+
+## LATEST WORK: PayPal Documentation Archive
+
+**Completed January 25, 2026**
+
+Created complete PayPal integration documentation in `docs/paypal/`:
+
+| File | Purpose |
+|------|---------|
+| `README.md` | Overview and quick start |
+| `STORY.md` | Full development history |
+| `SETUP_GUIDE.md` | Step-by-step setup from scratch |
+| `WEBHOOK_CODE.md` | Working webhook with explanations |
+| `DATABASE_SCHEMA.md` | All SQL needed |
+| `TROUBLESHOOTING.md` | Common problems and solutions |
+| `TEST_PAYLOADS.md` | How to test webhooks |
+
+**Key Fix Documented:** Changed `.update()` to `.upsert()` in webhook to fix silent failures.
 
 ---
 
@@ -40,6 +60,7 @@ All APKs stored in `/sdcard/Download/` for easy revert.
 | Item | Value |
 |------|-------|
 | PayPal Plan ID | `P-3RH33892X5467024SNFZON2Y` |
+| PayPal Button ID | `DHCKPWE3PJ684` |
 | Supabase Project | `mwxlguqukyfberyhtkmg` |
 | Webhook URL | `https://mwxlguqukyfberyhtkmg.supabase.co/functions/v1/paypal-webhook` |
 | Website | `https://www.mobilecli.com` |
@@ -47,10 +68,33 @@ All APKs stored in `/sdcard/Download/` for easy revert.
 
 ---
 
+## PAYPAL STATUS
+
+**Status:** WORKING and DOCUMENTED
+
+**The Fix (January 25, 2026):**
+- Problem: Webhook using `.update()` returned empty array when no row matched
+- Solution: Changed to `.upsert()` with `onConflict: "user_id"`
+- Now creates subscription row if missing, updates if exists
+
+**Full Documentation:** See `docs/paypal/` directory
+
+---
+
+## NEXT STEPS: Stripe Migration
+
+The PayPal integration is now fully documented. To switch to Stripe:
+
+1. PayPal documentation preserved in `docs/paypal/`
+2. Can revert to PayPal anytime using the documentation
+3. Stripe integration would follow similar pattern with different webhook events
+
+---
+
 ## KNOWN ISSUES (To Fix)
 
-### PayPal custom_id Not Working
-- **Problem:** PayPal subscription URLs don't support `custom_id` as URL parameter
+### PayPal custom_id Reliability
+- **Problem:** PayPal subscription URLs don't reliably pass `custom_id` as URL parameter
 - **Impact:** Webhook can't find user unless PayPal email matches Google login email
 - **Solution Needed:** Use PayPal JavaScript SDK to pass custom_id properly
 - **Workaround:** User must use same email for Google login and PayPal
@@ -66,8 +110,8 @@ All APKs stored in `/sdcard/Download/` for easy revert.
 
 ### Authentication & Payments
 - Google OAuth + Email/Password login
-- PayPal subscription ($15/month recurring)
-- Webhook handles all subscription events
+- PayPal subscription ($4.99/month recurring)
+- Webhook handles all subscription events (with UPSERT fix)
 - Multi-device login support
 - Payment success deep link handler
 
@@ -78,68 +122,31 @@ All APKs stored in `/sdcard/Download/` for easy revert.
 - Restore Purchase functionality
 - Delete Account option
 
-### Bug Fixes Applied (v2.0.7)
-- Fixed: Account screen transparent background → Added #121212
-- Fixed: Deprecated onBackPressed (Android 13+) → OnBackPressedCallback
-- Fixed: Webhook field mismatch → Changed `current_period_end` to `expires_at`
-- Fixed: PayPal 404 on return → Added deep link + website success page
-- Fixed: Restore Purchase button not responding → Added clickable/focusable attributes
-- Fixed: Google OAuth error handling → Better error messages
-- Fixed: Crash loop → Removed auto-verification in onResume()
-- Fixed: "Immediately kicks away" → LoginActivity no longer auto-redirects
-- **Fixed: Google OAuth not working** → Browser-based OAuth with manual PKCE (v2.0.7)
+### Bug Fixes Applied
+- Fixed: Account screen transparent background
+- Fixed: Deprecated onBackPressed (Android 13+)
+- Fixed: Webhook field mismatch
+- Fixed: PayPal 404 on return
+- Fixed: Restore Purchase button not responding
+- Fixed: Google OAuth error handling
+- Fixed: Crash loop
+- Fixed: "Immediately kicks away" issue
+- Fixed: Google OAuth not working (browser-based OAuth)
+- **Fixed: Webhook silent failure (UPSERT)**
 
 ---
 
-## GIT HISTORY (Latest)
+## GIT TAGS
 
+| Tag | Description |
+|-----|-------------|
+| `paypal-working-jan25` | Complete working PayPal integration |
+
+To recover PayPal:
+```bash
+git checkout paypal-working-jan25
+# Read docs/paypal/SETUP_GUIDE.md
 ```
-cfd014e Allow back button navigation from PaywallActivity (v2.0.8)
-d5e17bd Implement browser-based Google OAuth with PKCE (v2.0.7-BROWSER-OAUTH)
-c7ff93e Fix crash loops in LoginActivity and PaywallActivity (v2.0.6-STABLE)
-f3a62e6 Update documentation for v2.0.3-OAUTH-FIX
-bd22955 Fix Google OAuth crash - use browser-based flow
-```
-
----
-
-## WEBSITE PAGES (Deployed)
-
-| URL | Purpose |
-|-----|---------|
-| `mobilecli.com/success` | PayPal payment success → opens app |
-| `mobilecli.com/cancel` | PayPal payment cancelled |
-
-Vercel auto-deploys from `MobileDevCLI/website` repo.
-
----
-
-## FILES IN /sdcard/Download/
-
-| File | Purpose |
-|------|---------|
-| `MobileCLI-Pro-v2.0.8-BACKFIX.apk` | **LATEST - Use for testing** |
-| `MobileCLI-Pro-v2.0.7-BROWSER-OAUTH.apk` | Previous (browser OAuth) |
-| `MobileCLI-Pro-v2.0.6-STABLE.apk` | Previous (crash loop fix) |
-| `MobileCLI-Pro-v2.0.5-FIXED.apk` | Previous (LoginActivity fix) |
-| `MobileCLI-Pro-v2.0.4-GOOGLE-RESTORED.apk` | Previous (SDK OAuth) |
-| `MobileCLI-Pro-v2.0.3-OAUTH-FIX.apk` | Previous (browser OAuth) |
-| `MobileCLI-Pro-v2.0.2-RESTORE-FIX.apk` | Previous (restore button) |
-| `MobileCLI-Pro-v2.0.1-PAYMENT-FIX.apk` | Previous (payment deep link) |
-| `MobileCLI-Pro-v2.0.0-FINAL.apk` | Original release |
-
----
-
-## TEST FLOW (Updated)
-
-1. Install APK on test phone
-2. Login with Google (use same email as PayPal!)
-3. Click Subscribe → Opens PayPal subscription
-4. Complete $15 payment
-5. Return to app
-6. Click "Restore Purchase" to verify subscription
-7. If Pro status → Terminal opens
-8. If not → Check Supabase webhook logs
 
 ---
 
@@ -148,22 +155,13 @@ Vercel auto-deploys from `MobileDevCLI/website` repo.
 | File | Purpose |
 |------|---------|
 | `CURRENT_STATE.md` | Quick AI context recovery |
-| `docs/ROADMAP_AND_STATUS.md` | Full documentation |
+| `docs/paypal/` | **Complete PayPal archive** |
 | `CLAUDE.md` | AI environment guide |
 | `app/src/main/java/com/termux/auth/LoginActivity.kt` | Login + Google OAuth |
 | `app/src/main/java/com/termux/auth/PaywallActivity.kt` | PayPal + subscription |
 | `app/src/main/java/com/termux/auth/LicenseManager.kt` | Subscription verification |
-| `supabase/functions/paypal-webhook/index.ts` | Webhook code |
+| `supabase/functions/paypal-webhook/index.ts` | Webhook code (UPSERT version) |
 | `supabase/setup_subscriptions.sql` | Database setup SQL |
-
----
-
-## DEEP LINK CONFIGURATION
-
-App handles these deep links:
-- `com.termux://login-callback` (Google OAuth)
-- `com.termux://payment-success` (PayPal return)
-- `https://www.mobilecli.com/success` (HTTPS App Link)
 
 ---
 
@@ -176,27 +174,30 @@ App handles these deep links:
 
 ---
 
-## PAYMENT FLOW (Current State)
+## PAYMENT FLOW (Fixed)
 
 ```
 User clicks Subscribe
-    ↓
-PayPal checkout (custom_id via URL - MAY NOT WORK)
-    ↓
+    |
+    v
+PayPal checkout (with custom_id = user_id)
+    |
+    v
 User completes payment
-    ↓
-PayPal webhook → tries to find user by custom_id or email
-    ↓
-If found → status='active' in database
-If not found → subscription not recorded (BUG)
-    ↓
+    |
+    v
+PayPal webhook -> UPSERT (creates row if needed)
+    |
+    v
+status = 'active' in database
+    |
+    v
 User returns to app
-    ↓
-User clicks "Restore Purchase"
-    ↓
-App queries database → shows Pro status if found
+    |
+    v
+User clicks "Restore Purchase" -> Pro access granted
 ```
 
 ---
 
-*Last updated: January 23, 2026 - v2.0.8-BACKFIX*
+*Last updated: January 25, 2026 - PayPal Archive Complete*

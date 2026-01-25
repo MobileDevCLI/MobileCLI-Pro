@@ -50,22 +50,23 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Handle different PayPal events
+    // IMPORTANT: Using UPSERT instead of UPDATE
+    // Supabase .update() returns empty array (not error) when no row matches
+    // UPSERT creates row if missing, updates if exists
+
     if (eventType === "BILLING.SUBSCRIPTION.ACTIVATED" && customId) {
       console.log("Activating subscription for user:", customId)
 
-      // Calculate expiry (30 days from now)
-      const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 30)
-
       const { data, error } = await supabase
         .from("subscriptions")
-        .update({
+        .upsert({
+          user_id: customId,
           status: "active",
           paypal_subscription_id: subscriptionId,
-          current_period_end: expiresAt.toISOString(),
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: "user_id"
         })
-        .eq("user_id", customId)
         .select()
 
       if (error) {
@@ -78,13 +79,15 @@ Deno.serve(async (req: Request) => {
     if (eventType === "BILLING.SUBSCRIPTION.CANCELLED" && customId) {
       console.log("Cancelling subscription for user:", customId)
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("subscriptions")
-        .update({
+        .upsert({
+          user_id: customId,
           status: "cancelled",
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: "user_id"
         })
-        .eq("user_id", customId)
 
       if (error) {
         console.error("Database error:", error.message)
@@ -98,11 +101,13 @@ Deno.serve(async (req: Request) => {
 
       const { error } = await supabase
         .from("subscriptions")
-        .update({
+        .upsert({
+          user_id: customId,
           status: "suspended",
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: "user_id"
         })
-        .eq("user_id", customId)
 
       if (error) {
         console.error("Database error:", error.message)
@@ -114,11 +119,13 @@ Deno.serve(async (req: Request) => {
 
       const { error } = await supabase
         .from("subscriptions")
-        .update({
+        .upsert({
+          user_id: customId,
           status: "expired",
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: "user_id"
         })
-        .eq("user_id", customId)
 
       if (error) {
         console.error("Database error:", error.message)
@@ -128,18 +135,15 @@ Deno.serve(async (req: Request) => {
     if (eventType === "PAYMENT.SALE.COMPLETED" && customId) {
       console.log("Payment completed for user:", customId)
 
-      // Extend subscription by 30 days
-      const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 30)
-
       const { error } = await supabase
         .from("subscriptions")
-        .update({
+        .upsert({
+          user_id: customId,
           status: "active",
-          current_period_end: expiresAt.toISOString(),
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: "user_id"
         })
-        .eq("user_id", customId)
 
       if (error) {
         console.error("Database error:", error.message)
