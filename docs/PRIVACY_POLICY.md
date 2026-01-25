@@ -1,7 +1,7 @@
 # MobileCLI Pro - Privacy Policy
 
 **Effective Date:** January 22, 2026
-**Last Updated:** January 22, 2026
+**Last Updated:** January 25, 2026
 
 ---
 
@@ -185,8 +185,9 @@ To exercise these rights, contact us.
 ## 15. Contact Us
 
 For privacy questions or requests:
-- Website: https://mobilecli.com
-- GitHub: https://github.com/MobileDevCLI
+- **Email:** mobiledevcli@gmail.com
+- **Website:** https://mobilecli.com
+- **GitHub:** https://github.com/MobileDevCLI
 
 ---
 

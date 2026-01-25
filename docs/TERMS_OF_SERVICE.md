@@ -1,7 +1,7 @@
 # MobileCLI Pro - Terms of Service
 
 **Effective Date:** January 22, 2026
-**Last Updated:** January 22, 2026
+**Last Updated:** January 25, 2026
 
 ---
 
@@ -28,11 +28,17 @@ MobileCLI Pro is a mobile terminal application that provides command-line interf
 - You authorize automatic monthly charges until you cancel
 
 ### 3.3 Cancellation
-- You may cancel your subscription at any time through PayPal
+- You may cancel your subscription at any time through PayPal: https://www.paypal.com/myaccount/autopay/
 - Cancellation takes effect at the end of the current billing period
-- No refunds for partial months
+- Cancellation stops all future billing immediately
 
-### 3.4 Price Changes
+### 3.4 Refund Policy
+- **Full refund within 7 days of your FIRST payment, no questions asked**
+- After 7 days: Cancel anytime, but no refunds for current billing period
+- To request a refund, email: mobiledevcli@gmail.com
+- Refunds are processed within 3-5 business days
+
+### 3.5 Price Changes
 - We reserve the right to change subscription prices with 30 days notice
 - Continued use after price changes constitutes acceptance
 
@@ -178,8 +184,9 @@ These Terms constitute the entire agreement between you and MobileCLI Pro regard
 ## 16. Contact
 
 For questions about these Terms, contact:
-- Website: https://mobilecli.com
-- GitHub: https://github.com/MobileDevCLI
+- **Email:** mobiledevcli@gmail.com
+- **Website:** https://mobilecli.com
+- **GitHub:** https://github.com/MobileDevCLI
 
 ---
 
