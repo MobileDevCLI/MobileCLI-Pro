@@ -131,7 +131,6 @@ Deno.serve(async (req: Request) => {
         .upsert({
           user_id: userId,
           status: "active",
-          tier: "pro",
           paypal_subscription_id: subscriptionId,
           updated_at: new Date().toISOString()
         }, {
@@ -157,7 +156,6 @@ Deno.serve(async (req: Request) => {
         .upsert({
           user_id: userId,
           status: "active",
-          tier: "pro",
           updated_at: new Date().toISOString()
         }, {
           onConflict: "user_id"
