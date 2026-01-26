@@ -65,6 +65,7 @@ class LicenseManager(private val context: Context) {
 
     /**
      * Subscription data from Supabase.
+     * Must include ALL columns from database to avoid JSON parsing errors.
      */
     @Serializable
     data class Subscription(
@@ -72,9 +73,17 @@ class LicenseManager(private val context: Context) {
         val user_id: String,
         val status: String,
         val paypal_subscription_id: String? = null,
+        val paypal_payer_id: String? = null,
         val created_at: String? = null,
         val updated_at: String? = null,
-        val expires_at: String? = null
+        val expires_at: String? = null,
+        val trial_started_at: String? = null,
+        val trial_reminder_sent: Boolean? = null,
+        val payment_failed_at: String? = null,
+        val last_payment_at: String? = null,
+        val cancelled_at: String? = null,
+        val cancel_reason: String? = null,
+        val admin_notes: String? = null
     )
 
     /**
