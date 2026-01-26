@@ -2,8 +2,8 @@
 
 ## Current Version
 
-**Version:** 2.0.0-rc.2
-**Build:** 14
+**Version:** 2.0.0-rc.3
+**Build:** 15
 **Release Date:** January 25, 2026
 **Status:** Release Candidate (Production Ready)
 
@@ -38,7 +38,7 @@ MAJOR.MINOR.PATCH-STAGE.BUILD
 
 ---
 
-## Current Features (Build 14)
+## Current Features (Build 15)
 
 ### Authentication
 - [x] Email + Password login
@@ -66,8 +66,8 @@ MAJOR.MINOR.PATCH-STAGE.BUILD
 
 ## Download Links
 
-### Latest Stable (Build 14)
-https://github.com/MobileDevCLI/MobileCLI-Pro/releases/tag/v2.0.0-rc.2
+### Latest Stable (Build 15)
+https://github.com/MobileDevCLI/MobileCLI-Pro/releases/tag/v2.0.0-rc.3
 
 ### All Releases
 https://github.com/MobileDevCLI/MobileCLI-Pro/releases
@@ -113,7 +113,7 @@ https://github.com/MobileDevCLI/MobileCLI-Pro/releases
 
 ## File Checksums
 
-Build 14 APK checksums (verify download integrity):
+Build 15 APK checksums (verify download integrity):
 ```
 SHA256: (generate after download with: sha256sum app-debug.apk)
 MD5: (generate after download with: md5sum app-debug.apk)

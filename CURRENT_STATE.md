@@ -2,7 +2,7 @@
 
 **Date:** January 25, 2026
 **Status:** Auth/Payment Flow Production Ready
-**Version:** 2.0.0-rc.2 (Build 14)
+**Version:** 2.0.0-rc.3 (Build 15)
 
 ---
 
@@ -48,10 +48,12 @@ Created complete PayPal integration documentation in `docs/paypal/`:
 
 ## LATEST APK
 
-**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.0-rc.2.apk`
+**File:** `/sdcard/Download/MobileCLI-Pro-v2.0.0-rc.3.apk`
 
 This APK includes all previous fixes plus:
-- **Fixed support email** - Correct contact email for users
+- **Fixed AccountActivity delete email** - Now uses correct mobiledevcli@gmail.com
+- All support emails now correct
+- Webhook logging and payment history
 - Browser-based Google OAuth
 - Back button navigation fix
 
@@ -61,7 +63,8 @@ This APK includes all previous fixes plus:
 
 | Version | File | Changes |
 |---------|------|---------|
-| **v2.0.0-rc.2** | `MobileCLI-Pro-v2.0.0-rc.2.apk` | **LATEST** - Support email fix, webhook logging |
+| **v2.0.0-rc.3** | `MobileCLI-Pro-v2.0.0-rc.3.apk` | **LATEST** - All email fixes complete |
+| v2.0.0-rc.2 | `MobileCLI-Pro-v2.0.0-rc.2.apk` | Support email fix, webhook logging |
 | v2.0.8-BACKFIX | `MobileCLI-Pro-v2.0.8-BACKFIX.apk` | Back button navigation fix |
 | v2.0.7-BROWSER-OAUTH | `MobileCLI-Pro-v2.0.7-BROWSER-OAUTH.apk` | Browser-based Google OAuth with PKCE |
 | v2.0.6-STABLE | `MobileCLI-Pro-v2.0.6-STABLE.apk` | Crash loop fix, stable |
@@ -221,4 +224,4 @@ User clicks "Restore Purchase" -> Pro access granted
 
 ---
 
-*Last updated: January 25, 2026 - Auth/Payment Flow Fixes (rc.2)*
+*Last updated: January 25, 2026 - All email fixes complete (rc.3)*

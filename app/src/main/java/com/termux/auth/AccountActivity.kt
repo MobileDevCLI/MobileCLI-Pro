@@ -151,7 +151,7 @@ class AccountActivity : AppCompatActivity() {
             .setMessage("This will permanently delete your account and all data. This action cannot be undone.\n\nIf you have an active subscription, please cancel it first in PayPal.")
             .setPositiveButton("Delete") { _, _ ->
                 // For now, just show a message - actual deletion requires backend support
-                Toast.makeText(this, "Please email support@mobilecli.com to delete your account", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Please email mobiledevcli@gmail.com to delete your account", Toast.LENGTH_LONG).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
