@@ -14,6 +14,13 @@ const corsHeaders = {
   "Content-Type": "application/json"
 }
 
+// Helper to validate UUID format
+function isValidUUID(str: string | null | undefined): boolean {
+  if (!str) return false
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return uuidRegex.test(str)
+}
+
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -49,6 +56,9 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    // Validate user_id is proper UUID format (for database constraints)
+    const validUserId = isValidUUID(customId) ? customId : null
+
     // Log webhook event to database for debugging
     const { error: logError } = await supabase
       .from("webhook_logs")
@@ -57,7 +67,7 @@ Deno.serve(async (req: Request) => {
         event_id: body.id,
         provider: "paypal",
         payload: body,
-        user_id: customId || null,
+        user_id: validUserId,
         user_email: subscriberEmail || null,
         processed: false
       })
@@ -73,13 +83,13 @@ Deno.serve(async (req: Request) => {
 
     let processingResult = "no_action"
 
-    if (eventType === "BILLING.SUBSCRIPTION.ACTIVATED" && customId) {
+    if (eventType === "BILLING.SUBSCRIPTION.ACTIVATED" && validUserId) {
       console.log("Activating subscription for user:", customId)
 
       const { data, error } = await supabase
         .from("subscriptions")
         .upsert({
-          user_id: customId,
+          user_id: validUserId,
           status: "active",
           paypal_subscription_id: subscriptionId,
           updated_at: new Date().toISOString()
@@ -97,13 +107,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (eventType === "BILLING.SUBSCRIPTION.CANCELLED" && customId) {
+    if (eventType === "BILLING.SUBSCRIPTION.CANCELLED" && validUserId) {
       console.log("Cancelling subscription for user:", customId)
 
       const { data, error } = await supabase
         .from("subscriptions")
         .upsert({
-          user_id: customId,
+          user_id: validUserId,
           status: "cancelled",
           updated_at: new Date().toISOString()
         }, {
@@ -119,13 +129,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (eventType === "BILLING.SUBSCRIPTION.SUSPENDED" && customId) {
+    if (eventType === "BILLING.SUBSCRIPTION.SUSPENDED" && validUserId) {
       console.log("Suspending subscription for user:", customId)
 
       const { error } = await supabase
         .from("subscriptions")
         .upsert({
-          user_id: customId,
+          user_id: validUserId,
           status: "suspended",
           updated_at: new Date().toISOString()
         }, {
@@ -140,13 +150,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (eventType === "BILLING.SUBSCRIPTION.EXPIRED" && customId) {
+    if (eventType === "BILLING.SUBSCRIPTION.EXPIRED" && validUserId) {
       console.log("Expiring subscription for user:", customId)
 
       const { error } = await supabase
         .from("subscriptions")
         .upsert({
-          user_id: customId,
+          user_id: validUserId,
           status: "expired",
           updated_at: new Date().toISOString()
         }, {
@@ -161,13 +171,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (eventType === "PAYMENT.SALE.COMPLETED" && customId) {
+    if (eventType === "PAYMENT.SALE.COMPLETED" && validUserId) {
       console.log("Payment completed for user:", customId)
 
       const { error } = await supabase
         .from("subscriptions")
         .upsert({
-          user_id: customId,
+          user_id: validUserId,
           status: "active",
           updated_at: new Date().toISOString()
         }, {
@@ -185,7 +195,7 @@ Deno.serve(async (req: Request) => {
       const { error: historyError } = await supabase
         .from("payment_history")
         .insert({
-          user_id: customId,
+          user_id: validUserId,
           amount: resource.amount?.total || 15.00,
           currency: resource.amount?.currency || "USD",
           payment_type: "subscription_renewal",
