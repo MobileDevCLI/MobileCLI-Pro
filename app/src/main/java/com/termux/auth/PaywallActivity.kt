@@ -273,36 +273,111 @@ class PaywallActivity : AppCompatActivity() {
     }
 
     private fun openCheckout() {
-        // Get user ID to pass to PayPal for webhook matching
         val userId = SupabaseClient.getCurrentUserId()
 
-        // Build PayPal URL with custom_id for user matching
-        // This allows webhook to match user even if PayPal email differs from login email
-        val subscribeUrl = if (userId != null) {
-            "$PAYPAL_SUBSCRIBE_URL&custom_id=$userId"
-        } else {
-            PAYPAL_SUBSCRIBE_URL
+        if (userId == null) {
+            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        Log.d(TAG, "Opening PayPal checkout with user_id: $userId")
+        Log.d(TAG, "Creating subscription for user: $userId")
+        showProcessingState("Setting up payment...")
 
-        // Mark that we're starting a payment flow
-        // This triggers verification polling when user returns
+        lifecycleScope.launch {
+            try {
+                // Call our Edge Function to create subscription with proper custom_id
+                val approvalUrl = createSubscriptionViaApi(userId)
+
+                if (approvalUrl != null) {
+                    hideProcessingState()
+                    markPaymentStarted()
+
+                    // Open PayPal approval page
+                    try {
+                        val customTabsIntent = CustomTabsIntent.Builder()
+                            .setShowTitle(true)
+                            .build()
+                        customTabsIntent.launchUrl(this@PaywallActivity, Uri.parse(approvalUrl))
+                    } catch (e: Exception) {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(approvalUrl))
+                        startActivity(intent)
+                    }
+
+                    Toast.makeText(this@PaywallActivity, "Complete payment in PayPal", Toast.LENGTH_LONG).show()
+                } else {
+                    hideProcessingState()
+                    // Fallback to direct URL method
+                    openCheckoutDirect(userId)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to create subscription via API", e)
+                hideProcessingState()
+                // Fallback to direct URL method
+                openCheckoutDirect(userId)
+            }
+        }
+    }
+
+    /**
+     * Create subscription via our Edge Function (embeds custom_id properly)
+     */
+    private suspend fun createSubscriptionViaApi(userId: String): String? {
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val url = java.net.URL("https://mwxlguqukyfberyhtkmg.supabase.co/functions/v1/create-subscription")
+                val connection = url.openConnection() as java.net.HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.doOutput = true
+                connection.connectTimeout = 30000
+                connection.readTimeout = 30000
+
+                // Write request body
+                val json = """{"user_id": "$userId"}"""
+                connection.outputStream.bufferedWriter().use { it.write(json) }
+
+                val responseCode = connection.responseCode
+                Log.d(TAG, "Create subscription response code: $responseCode")
+
+                if (responseCode == 200) {
+                    val responseBody = connection.inputStream.bufferedReader().readText()
+                    Log.d(TAG, "Create subscription response: $responseBody")
+
+                    // Parse JSON to get approval_url
+                    val jsonResponse = org.json.JSONObject(responseBody)
+                    val approvalUrl = jsonResponse.optString("approval_url", null)
+                    approvalUrl
+                } else {
+                    val errorBody = connection.errorStream?.bufferedReader()?.readText()
+                    Log.e(TAG, "Create subscription failed: $responseCode - $errorBody")
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error calling create-subscription API", e)
+                null
+            }
+        }
+    }
+
+    /**
+     * Fallback: Direct PayPal URL (less reliable for custom_id)
+     */
+    private fun openCheckoutDirect(userId: String) {
+        Log.d(TAG, "Using fallback direct PayPal URL")
+
+        val subscribeUrl = "$PAYPAL_SUBSCRIBE_URL&custom_id=$userId"
         markPaymentStarted()
 
-        // Open PayPal subscription page
         try {
             val customTabsIntent = CustomTabsIntent.Builder()
                 .setShowTitle(true)
                 .build()
             customTabsIntent.launchUrl(this, Uri.parse(subscribeUrl))
         } catch (e: Exception) {
-            // Fallback to browser
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(subscribeUrl))
             startActivity(intent)
         }
 
-        // When they come back, we'll automatically check subscription status
         Toast.makeText(this, "Complete payment in PayPal - we'll verify when you return", Toast.LENGTH_LONG).show()
     }
 
